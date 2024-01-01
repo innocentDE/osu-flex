@@ -11,6 +11,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -71,11 +72,18 @@ public class FlexRequests {
     }
 
     public List<User> getOnlineUsers(List<Integer> userIds) throws JsonProcessingException {
-        String queryString = utility.buildQueryString(userIds);
-        String uri = "/users?" + queryString;
-        HttpResponse<String> response = utility.sendGetRequest(uri);
-        List<User> allUsers = utility.extractUsersFromResponse(response.body());
-        List<User> onlineUsers = utility.filterOnlineUsers(allUsers);
+        int maxUsersPerRequest = 20;
+        List<User> onlineUsers = new ArrayList<>();
+        for (int i = 0; i < userIds.size(); i += maxUsersPerRequest) {
+            List<Integer> batchUserIds = userIds.subList(i, Math.min(i + maxUsersPerRequest, userIds.size()));
+            String queryString = utility.buildQueryString(batchUserIds);
+            String uri = "/users?" + queryString;
+            HttpResponse<String> response = utility.sendGetRequest(uri);
+            List<User> allUsers = utility.extractUsersFromResponse(response.body());
+            List<User> batchOnlineUsers = utility.filterOnlineUsers(allUsers);
+            onlineUsers.addAll(batchOnlineUsers);
+        }
         return onlineUsers;
     }
+
 }

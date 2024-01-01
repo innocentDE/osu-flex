@@ -48,13 +48,11 @@ public class Flex {
             Optional<Score> recentScore = requests.getScore(user.id);
 
             if(recentScore.isEmpty()){
-                logger.debug(user.username + " has no recent score");
                 continue;
             }
 
             try {
                 if(userStorage.isBestId(user.id, recentScore.get().id)){
-                    logger.debug(user.username + "'s best score is already in the database");
                     continue;
                 }
             } catch (SQLException e) {
