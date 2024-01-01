@@ -15,7 +15,7 @@ public class Main {
 
         MySqlController database = new MySqlController();
         database.connect(
-                System.getenv("MYSQL_DB_URL"),
+                "jdbc:mysql://192.168.0.31:3306/flex",
                 System.getenv("MYSQL_DB_USERNAME"),
                 System.getenv("MYSQL_DB_PASSWORD")
         );
@@ -32,7 +32,7 @@ public class Main {
         while(true){
             flex.start();
             try {
-                Thread.sleep(60000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

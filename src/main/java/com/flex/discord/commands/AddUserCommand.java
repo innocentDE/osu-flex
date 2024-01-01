@@ -60,8 +60,11 @@ public class AddUserCommand extends SlashCommand {
         } else {
             Optional<User> user = requests.getUser(username);
             if (user.isPresent()) {
-                if(!userStorage.getUserId(username).isPresent())
+                if(!userStorage.getUserId(username).isPresent()){
                     userStorage.registerUser(user.get());
+                    logger.debug(String.format("%s on %s registered %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
+                }
+                logger.debug(String.format("%s on %s added %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
                 userServersStorage.addKeys(user.get().id, guildId);
                 event.getHook().sendMessage("User registered").queue();
             } else {

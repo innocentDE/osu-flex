@@ -9,15 +9,17 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
 public class RemoveUserCommand extends SlashCommand {
 
-    UserServersStorage userServersStorage;
-    UserStorage userStorage;
-    ServerStorage serverStorage;
+    private final UserServersStorage userServersStorage;
+    private final UserStorage userStorage;
+    private final Logger logger = LogManager.getLogger(RemoveUserCommand.class);
 
     public RemoveUserCommand(JDA api, FlexRequests requests) {
         super(
@@ -28,7 +30,6 @@ public class RemoveUserCommand extends SlashCommand {
         );
         userServersStorage = new UserServersStorage(requests.getConnection());
         userStorage = new UserStorage(requests.getConnection());
-        serverStorage = new ServerStorage(requests.getConnection());
     }
 
     @Override
@@ -59,7 +60,9 @@ public class RemoveUserCommand extends SlashCommand {
                 // if (!userServersStorage.isUserOnMultipleServers(userId.get())) {
                 //     userStorage.removeUser(userId.get());
                 // }
+                logger.debug(String.format("%s removed from server %s by %s", username, serverId, event.getUser().getAsTag()));
                 event.getHook().sendMessage("User removed").queue();
+
             } else {
                 event.getHook().sendMessage("User already removed or not registered").queue();
             }

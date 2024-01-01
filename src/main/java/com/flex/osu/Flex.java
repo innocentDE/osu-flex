@@ -8,6 +8,7 @@ import com.flex.osu.api.requests.FlexRequests;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,13 +49,11 @@ public class Flex {
             Optional<Score> recentScore = requests.getScore(user.id);
 
             if(recentScore.isEmpty()){
-                logger.debug(user.username + " has no recent score");
                 continue;
             }
 
             try {
                 if(userStorage.isBestId(user.id, recentScore.get().id)){
-                    logger.debug(user.username + "'s best score is already in the database");
                     continue;
                 }
             } catch (SQLException e) {
@@ -86,6 +85,24 @@ public class Flex {
             if(servers.isEmpty()){
                 logger.debug("No servers found for user " + user.username);
                 return;
+            }
+
+            for(Map.Entry<String, String> server : servers.entrySet()){
+                if(!api.getGuildById(server.getKey())
+                        .getSelfMember()
+                        .hasPermission(api.getGuildById(server.getKey())
+                                .getTextChannelById(server.getValue()),
+                                Permission.MESSAGE_SEND)) {
+                    logger.debug("Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey());
+                    api.getGuildById(server.getKey())
+                            .getOwner()
+                            .getUser()
+                            .openPrivateChannel()
+                            .queue((channel) -> channel.sendMessage(
+                                    "Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey()).queue()
+                            );
+                    return;
+                }
             }
 
             for(Map.Entry<String, String> server : servers.entrySet()){
