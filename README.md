@@ -8,6 +8,7 @@ osu!flex is a discord bot that allows you to track players' top plays and send t
   <img src="assets/images/osu-flex-logo.png" alt="osu!flex logo" width="400" height="400">
 </p>
 
+> Add osu!flex to your server: [Invite](https://discord.com/api/oauth2/authorize?client_id=1188925809721872524&permissions=18432&scope=bot+applications.commands)
 
 Join our discord server for support and updates or to get in touch with the developers.
 
