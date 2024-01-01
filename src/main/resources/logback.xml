@@ -1,0 +1,3 @@
+<configuration>
+    <logger name="net.dv8tion.jda" level="OFF"/>
+</configuration>
