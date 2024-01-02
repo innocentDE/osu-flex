@@ -35,7 +35,13 @@ public class FlexRequests {
         String rawUri = String.format("/users/%s", username);
         rawUri = URLEncoder.encode(rawUri, StandardCharsets.UTF_8);
         String uri = rawUri.replace("+", "%20");
-        HttpResponse<String> response = utility.sendGetRequest(uri);
+        HttpResponse<String> response;
+        try{
+            response = utility.sendGetRequest(uri);
+        } catch (IllegalStateException e) {
+            System.out.println("IllegalStateException");
+            return Optional.empty();
+        }
         if (response.statusCode() == 404) {
             return Optional.empty();
         }
@@ -45,7 +51,13 @@ public class FlexRequests {
 
     public Optional<Score> getScore(int userId) throws JsonProcessingException {
         String uri = String.format("/users/%d/scores/recent?include_fails=0&mode=osu&limit=1", userId);
-        HttpResponse<String> response = utility.sendGetRequest(uri);
+        HttpResponse<String> response;
+        try{
+            response = utility.sendGetRequest(uri);
+        } catch (IllegalStateException e) {
+            System.out.println("IllegalStateException");
+            return Optional.empty();
+        }
         String responseBody = utility.trimBrackets(response.body());
         if (responseBody.isEmpty()) {
             return Optional.empty();
@@ -56,7 +68,13 @@ public class FlexRequests {
 
     public List<Score> getBestScores(int userId, int amount) throws JsonProcessingException {
         String uri = String.format("/users/%d/scores/best?include_fails=0&mode=osu&limit=%d", userId, amount);
-        HttpResponse<String> response = utility.sendGetRequest(uri);
+        HttpResponse<String> response;
+        try{
+            response = utility.sendGetRequest(uri);
+        } catch (IllegalStateException e) {
+            System.out.println("IllegalStateException");
+            return Collections.emptyList();
+        }
         List<Score> scores = utility.getMapper().readValue(response.body(), new TypeReference<List<Score>>() {
         });
         return scores;
@@ -78,7 +96,13 @@ public class FlexRequests {
             List<Integer> batchUserIds = userIds.subList(i, Math.min(i + maxUsersPerRequest, userIds.size()));
             String queryString = utility.buildQueryString(batchUserIds);
             String uri = "/users?" + queryString;
-            HttpResponse<String> response = utility.sendGetRequest(uri);
+            HttpResponse<String> response;
+            try{
+                response = utility.sendGetRequest(uri);
+            } catch (IllegalStateException e) {
+                System.out.println("IllegalStateException");
+                return Collections.emptyList();
+            }
             List<User> allUsers = utility.extractUsersFromResponse(response.body());
             List<User> batchOnlineUsers = utility.filterOnlineUsers(allUsers);
             onlineUsers.addAll(batchOnlineUsers);
