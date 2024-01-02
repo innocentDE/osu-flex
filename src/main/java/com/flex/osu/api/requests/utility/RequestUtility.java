@@ -54,20 +54,34 @@ public class RequestUtility {
         accessToken = credentialStorage.getAccessToken();
     }
 
-    public HttpResponse<String> sendGetRequest(String endpoint)  {
-        try {
-            URI uri = new URI(API_BASE_URL + endpoint);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header("Authorization", "Bearer " + accessToken)
-                    .GET()
-                    .build();
+    public HttpResponse<String> sendGetRequest(String endpoint) throws IllegalStateException {
+        int maxAttempts = 5;
+        int waitTime = 1000;
 
-            return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (URISyntaxException | InterruptedException | IOException e) {
-            logger.debug(e.getMessage());
-            throw new RuntimeException(e);
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                URI uri = new URI(API_BASE_URL + endpoint);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .GET()
+                        .build();
+
+                return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            } catch (URISyntaxException | InterruptedException | IOException e) {
+                logger.debug("Attempt " + (attempt + 1) + " failed: " + e.getMessage());
+                if (attempt == maxAttempts - 1) {
+                    break;
+                }
+                try {
+                    Thread.sleep(waitTime);
+                    waitTime *= 2;
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
+        throw new IllegalStateException("Unexpected state: failed to send request");
     }
 
     public String trimBrackets(String responseBody) {
