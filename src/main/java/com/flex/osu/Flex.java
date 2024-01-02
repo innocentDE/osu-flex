@@ -87,23 +87,8 @@ public class Flex {
                 return;
             }
 
-            for(Map.Entry<String, String> server : servers.entrySet()){
-                if(!api.getGuildById(server.getKey())
-                        .getSelfMember()
-                        .hasPermission(api.getGuildById(server.getKey())
-                                .getTextChannelById(server.getValue()),
-                                Permission.MESSAGE_SEND)) {
-                    logger.debug("Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey());
-                    api.getGuildById(server.getKey())
-                            .getOwner()
-                            .getUser()
-                            .openPrivateChannel()
-                            .queue((channel) -> channel.sendMessage(
-                                    "Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey()).queue()
-                            );
-                    return;
-                }
-            }
+            if (hasBotPermission(servers))
+                return;
 
             for(Map.Entry<String, String> server : servers.entrySet()){
                 api.getGuildById((server.getKey()))
@@ -113,5 +98,28 @@ public class Flex {
                 logger.debug("Sent embed for user " + user.username + " to server " + server.getKey());
             }
         }
+    }
+
+    private boolean hasBotPermission(Map<String, String> servers) {
+        for(Map.Entry<String, String> server : servers.entrySet()){
+            if(!api.getGuildById(server.getKey())
+                    .getSelfMember()
+                    .hasPermission(api.getGuildById(server.getKey())
+                            .getTextChannelById(server.getValue()),
+                            Permission.MESSAGE_SEND)) {
+                logger.debug("Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey());
+
+                api.getGuildById(server.getKey())
+                        .retrieveOwner()
+                        .complete()
+                        .getUser()
+                        .openPrivateChannel()
+                        .queue((channel) -> channel.sendMessage(
+                                "Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey()).queue()
+                        );
+                return true;
+            }
+        }
+        return false;
     }
 }
