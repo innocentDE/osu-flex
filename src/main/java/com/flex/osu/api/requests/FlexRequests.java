@@ -23,6 +23,7 @@ public class FlexRequests {
 
     @Getter
     private final Connection connection;
+    private final static int MAX_USERS_PER_REQUEST = 20;
 
     public FlexRequests(Connection connection) {
         this.connection = connection;
@@ -39,7 +40,6 @@ public class FlexRequests {
         try{
             response = utility.sendGetRequest(uri);
         } catch (IllegalStateException e) {
-            System.out.println("IllegalStateException");
             return Optional.empty();
         }
         if (response.statusCode() == 404) {
@@ -55,7 +55,6 @@ public class FlexRequests {
         try{
             response = utility.sendGetRequest(uri);
         } catch (IllegalStateException e) {
-            System.out.println("IllegalStateException");
             return Optional.empty();
         }
         String responseBody = utility.trimBrackets(response.body());
@@ -75,8 +74,7 @@ public class FlexRequests {
             System.out.println("IllegalStateException");
             return Collections.emptyList();
         }
-        List<Score> scores = utility.getMapper().readValue(response.body(), new TypeReference<List<Score>>() {
-        });
+        List<Score> scores = utility.getMapper().readValue(response.body(), new TypeReference<List<Score>>() {});
         return scores;
     }
 
@@ -90,10 +88,9 @@ public class FlexRequests {
     }
 
     public List<User> getOnlineUsers(List<Integer> userIds) throws JsonProcessingException {
-        int maxUsersPerRequest = 20;
         List<User> onlineUsers = new ArrayList<>();
-        for (int i = 0; i < userIds.size(); i += maxUsersPerRequest) {
-            List<Integer> batchUserIds = userIds.subList(i, Math.min(i + maxUsersPerRequest, userIds.size()));
+        for (int i = 0; i < userIds.size(); i += MAX_USERS_PER_REQUEST) {
+            List<Integer> batchUserIds = userIds.subList(i, Math.min(i + MAX_USERS_PER_REQUEST, userIds.size()));
             String queryString = utility.buildQueryString(batchUserIds);
             String uri = "/users?" + queryString;
             HttpResponse<String> response;
