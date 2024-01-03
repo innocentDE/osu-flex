@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.database.storage.CredentialStorage;
 import com.flex.osu.entities.user.User;
 import lombok.Getter;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,15 +22,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class RequestUtility {
 
     private String accessToken;
     private static final String API_BASE_URL = "https://osu.ppy.sh/api/v2";
+    private static final int MAX_ATTEMPTS = 5;
+    private static int SLEEP_TIME = 1000;
     private final Logger logger = LogManager.getLogger(RequestUtility.class);
     private final CredentialStorage credentialStorage;
 
@@ -39,35 +39,50 @@ public class RequestUtility {
     public RequestUtility(Connection connection) {
         credentialStorage = new CredentialStorage(connection);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> {
+    }
+
+    public HttpResponse<String> sendGetRequest(String endpoint) throws IllegalStateException {
+        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
             try {
-                updateAccessToken();
-            } catch (SQLException e) {
-                logger.fatal("Failed to update access token", e);
+                sendRequest(endpoint);
+            } catch (URISyntaxException | InterruptedException | IOException e) {
+                logger.debug("Attempt " + (attempt + 1) + " failed: " + e.getMessage());
+                if (hasMaxAttemptsReached(attempt))
+                    break;
             }
-        }, 0, 12, TimeUnit.HOURS);
-    }
-
-    private void updateAccessToken() throws SQLException {
-
-        accessToken = credentialStorage.getAccessToken();
-    }
-
-    public HttpResponse<String> sendGetRequest(String endpoint)  {
-        try {
-            URI uri = new URI(API_BASE_URL + endpoint);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header("Authorization", "Bearer " + accessToken)
-                    .GET()
-                    .build();
-
-            return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (URISyntaxException | InterruptedException | IOException e) {
-            logger.warn(e.getMessage());
-            throw new RuntimeException(e);
         }
+        throw new IllegalStateException("Unexpected state: failed to send request");
+    }
+
+    private void sendRequest(String endpoint) throws URISyntaxException, IOException, InterruptedException {
+        URI uri = new URI(API_BASE_URL + endpoint);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(uri)
+                .header("Authorization", "Bearer " + accessToken)
+                .GET()
+                .build();
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+        if(response.statusCode() == HttpStatus.SC_UNAUTHORIZED){
+            try{
+                accessToken = credentialStorage.getAccessToken();
+            } catch (SQLException sqle){
+                throw new IllegalStateException("Unexpected state: failed to send request" + sqle.getMessage());
+            }
+        }
+    }
+
+    private boolean hasMaxAttemptsReached(int attempt) {
+        if (attempt == MAX_ATTEMPTS - 1) {
+            return true;
+        }
+        try {
+            Thread.sleep(SLEEP_TIME);
+            SLEEP_TIME *= 2;
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+        return false;
     }
 
     public String trimBrackets(String responseBody) {
@@ -92,6 +107,5 @@ public class RequestUtility {
         return allUsers.stream()
                 .filter(User::is_online)
                 .collect(Collectors.toList());
-
     }
 }

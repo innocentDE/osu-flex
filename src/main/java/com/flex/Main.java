@@ -17,7 +17,7 @@ public class Main {
 
         MySqlController database = new MySqlController();
         database.connect(
-                "jdbc:mysql://192.168.0.31:3306/flex",
+                "MYSQL_DB_URL",
                 System.getenv("MYSQL_DB_USERNAME"),
                 System.getenv("MYSQL_DB_PASSWORD")
         );
