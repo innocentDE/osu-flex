@@ -7,5 +7,4 @@ import java.sql.Connection;
 public abstract class MySqlStorage {
 
     Connection connection;
-    Logger logger;
 }

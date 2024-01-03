@@ -13,7 +13,6 @@ public class UserServersStorage extends MySqlStorage {
 
     public UserServersStorage(Connection connection) {
         super.connection = connection;
-        logger = LogManager.getLogger(UserStorage.class);
     }
 
     public void addKeys(int userId, long serverId) throws SQLException {

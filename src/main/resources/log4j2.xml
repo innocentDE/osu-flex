@@ -4,13 +4,23 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout>
                 <pattern>
-                    %highlight{[%p] - [%d{dd/MM/yyyy - HH:mm:ss}] - [%c{1}:%L] - %m%n}{FATAL=red bold, ERROR=red, WARN=yellow bold, INFO=white, DEBUG=blue, TRACE=blue}
+                    %highlight{[%p] - [%d{dd/MM/yyyy - HH:mm:ss}] - [%c{1}:%L] - %m%n}{FATAL=red bold, ERROR=red, WARN=yellow bold}
                 </pattern>
             </PatternLayout>
         </Console>
+        <File name="File" fileName="output.log">
+            <PatternsLayout>
+                <pattern>
+                    [%p] - [%d{dd/MM/yyyy - HH:mm:ss}] - [%c{1}:%L] - %m%n
+                </pattern>
+            </PatternsLayout>
+        </File>
     </Appenders>
     <Loggers>
         <Logger name="com.flex" level="trace" additivity="false">
+            <AppenderRef ref="File"/>
+        </Logger>
+        <Logger name="com.flex" level="warn" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
         <Root level="off">

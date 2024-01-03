@@ -15,7 +15,6 @@ public class UserStorage extends MySqlStorage {
 
     public UserStorage(Connection connection) {
         super.connection = connection;
-        logger = LogManager.getLogger(UserStorage.class);
     }
 
     public void registerUser(User user) throws SQLException {

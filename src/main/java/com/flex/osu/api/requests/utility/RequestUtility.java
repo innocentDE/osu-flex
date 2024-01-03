@@ -65,7 +65,7 @@ public class RequestUtility {
 
             return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
         } catch (URISyntaxException | InterruptedException | IOException e) {
-            logger.debug(e.getMessage());
+            logger.warn(e.getMessage());
             throw new RuntimeException(e);
         }
     }

@@ -8,7 +8,6 @@ public class CredentialStorage extends MySqlStorage {
 
     public CredentialStorage(Connection connection) {
         super.connection = connection;
-        logger = LogManager.getLogger(CredentialStorage.class);
     }
 
     public void insertAccessToken(String accessToken) throws SQLException {

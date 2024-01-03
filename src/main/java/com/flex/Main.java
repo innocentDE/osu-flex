@@ -5,12 +5,14 @@ import com.flex.database.MySqlController;
 import com.flex.discord.Bot;
 import com.flex.osu.Flex;
 import com.flex.osu.api.requests.AccessTokenProvider;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.http.HttpClient;
 import java.sql.SQLException;
 
 public class Main {
-
+    private static final Logger logger = LogManager.getLogger(Main.class);
     public static void main(String[] args) throws SQLException, JsonProcessingException {
 
         MySqlController database = new MySqlController();
@@ -34,6 +36,7 @@ public class Main {
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
+                logger.warn(e.getMessage());
                 e.printStackTrace();
             }
         }

@@ -39,6 +39,7 @@ public class Flex {
         try {
             userIds = userStorage.getUserIds();
         } catch (SQLException e) {
+            logger.fatal(e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -57,11 +58,13 @@ public class Flex {
                     continue;
                 }
             } catch (SQLException e) {
+                logger.fatal(e.getMessage());
                 throw new RuntimeException(e);
             }
             try {
                 userStorage.insertBestId(user.id, recentScore.get().id);
             } catch (SQLException e) {
+                logger.fatal(e.getMessage());
                 throw new RuntimeException(e);
             }
             Optional<Score> score = requests.isInBest(
@@ -79,6 +82,7 @@ public class Flex {
             try {
                 servers = userServersStorage.getServersByUser(score.get().user_id);
             } catch (SQLException e) {
+                logger.fatal(e.getMessage());
                 throw new RuntimeException(e);
             }
 

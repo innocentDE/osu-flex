@@ -12,7 +12,6 @@ public class ServerStorage extends MySqlStorage {
 
     public ServerStorage(Connection connection){
         super.connection = connection;
-        logger = LogManager.getLogger(UserStorage.class);
     }
 
     public boolean isServerRegistered(long serverId) throws SQLException {
