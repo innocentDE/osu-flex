@@ -1,10 +1,9 @@
 package com.flex.discord.embeds;
 
+import com.flex.data.FlexData;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-
-import java.awt.*;
 
 @Getter
 public class JoinEmbed {
@@ -41,9 +40,9 @@ public class JoinEmbed {
                 )
                 .addField("Links",
                         "For help or (feature) requests join the [osu!flex](https://discord.gg/PxFdAkejV9) discord server!\n" +
-                        "Bug report and contribution on [GitHub](https://github.com/innocentDE/osu-flex).", false)
-                .setColor(new Color(255, 255, 255))
-                .setFooter("osu!flex - v.1.0.0")
+                                "Bug report and contribution on [GitHub](https://github.com/innocentDE/osu-flex).", false)
+                .setColor(FlexData.getRandomOsuPaletteColor())
+                .setFooter(FlexData.CLIENT_VERSION)
                 .build();
     }
 }

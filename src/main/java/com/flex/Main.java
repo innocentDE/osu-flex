@@ -1,6 +1,7 @@
 package com.flex;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flex.data.FlexData;
 import com.flex.database.MySqlController;
 import com.flex.discord.Bot;
 import com.flex.osu.Flex;
@@ -15,7 +16,7 @@ public class Main {
 
         MySqlController database = new MySqlController();
         database.connect(
-                "jdbc:mysql://192.168.0.31:3306/flex",
+                System.getenv("MYSQL_DB_URL"),
                 System.getenv("MYSQL_DB_USERNAME"),
                 System.getenv("MYSQL_DB_PASSWORD")
         );
@@ -32,7 +33,7 @@ public class Main {
         while(true){
             flex.start();
             try {
-                Thread.sleep(10000);
+                Thread.sleep(FlexData.SLEEP);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
