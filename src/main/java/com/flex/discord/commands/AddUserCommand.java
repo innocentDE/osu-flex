@@ -43,11 +43,11 @@ public class AddUserCommand extends SlashCommand {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(name)) {
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             try {
                 handleUserRegistration(event);
             } catch (SQLException | JsonProcessingException e) {
-                event.getHook().sendMessage("Something went wrong").queue();
+                event.getHook().sendMessage("Something went wrong").setEphemeral(true).queue();
             }
         }
     }
@@ -56,7 +56,7 @@ public class AddUserCommand extends SlashCommand {
         long guildId = event.getGuild().getIdLong();
         String username = event.getOption(optionName).getAsString();
         if (userStorage.isUserRegistered(username, guildId)) {
-            event.getHook().sendMessage("User is already registered").queue();
+            event.getHook().sendMessage("User is already registered").setEphemeral(true).queue();
         } else {
             Optional<User> user = requests.getUser(username);
             if (user.isPresent()) {
@@ -66,9 +66,9 @@ public class AddUserCommand extends SlashCommand {
                 }
                 logger.debug(String.format("%s on %s added %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
                 userServersStorage.addKeys(user.get().id, guildId);
-                event.getHook().sendMessage("User registered").queue();
+                event.getHook().sendMessage("User registered").setEphemeral(true).queue();
             } else {
-                event.getHook().sendMessage("User does not exist").queue();
+                event.getHook().sendMessage("User does not exist").setEphemeral(true).queue();
             }
         }
 

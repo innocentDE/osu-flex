@@ -34,12 +34,12 @@ public class SetChannelCommand extends SlashCommand {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(name)) {
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             try {
                 handleSettingChannel(event);
-                event.getHook().sendMessage("Channel set").queue();
+                event.getHook().sendMessage("Channel set").setEphemeral(true).queue();
             } catch (SQLException e) {
-                event.getHook().sendMessage("Failed to set channel").queue();
+                event.getHook().sendMessage("Failed to set channel").setEphemeral(true).queue();
             }
         }
     }
