@@ -9,7 +9,8 @@ import java.util.Random;
 public abstract class FlexData {
 
     public static final String CLIENT_VERSION = "osu!flex - v.1.0.0";
-    public static final long SLEEP = 30000;
+    public static final int SLEEP = 30000;
+    public static final int ERROR_SLEEP = 5000;
 
 
     public static Color getRandomOsuPaletteColor() {
