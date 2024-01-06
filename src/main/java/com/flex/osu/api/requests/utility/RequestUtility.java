@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.database.storage.CredentialStorage;
 import com.flex.osu.entities.user.User;
 import lombok.Getter;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,9 +22,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class RequestUtility {
@@ -39,14 +37,6 @@ public class RequestUtility {
     public RequestUtility(Connection connection) {
         credentialStorage = new CredentialStorage(connection);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> {
-            try {
-                updateAccessToken();
-            } catch (SQLException e) {
-                logger.fatal("Failed to update access token", e);
-            }
-        }, 0, 12, TimeUnit.HOURS);
     }
 
     private void updateAccessToken() throws SQLException {
@@ -54,21 +44,52 @@ public class RequestUtility {
         accessToken = credentialStorage.getAccessToken();
     }
 
-    public HttpResponse<String> sendGetRequest(String endpoint)  {
-        try {
-            URI uri = new URI(API_BASE_URL + endpoint);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .header("Authorization", "Bearer " + accessToken)
-                    .GET()
-                    .build();
+    public HttpResponse<String> sendGetRequest(String endpoint) {
+        int maxAttempts = 5;
+        int waitTime = 1000;
 
-            return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (URISyntaxException | InterruptedException | IOException e) {
-            logger.debug(e.getMessage());
-            throw new RuntimeException(e);
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                URI uri = new URI(API_BASE_URL + endpoint);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(uri)
+                        .header("Authorization", "Bearer " + accessToken)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = HttpClient
+                        .newHttpClient()
+                        .send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == HttpStatus.SC_OK) {
+                    return response;
+                } else if (response.statusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                    // todo: handle UNAUTHORIZED on first polling attempt
+                    logger.warn("Request failed with status code " + response.statusCode());
+                    updateAccessToken();
+                } else if(response.statusCode() == HttpStatus.SC_NOT_FOUND) {
+                    return response;
+                } else {
+                    logger.warn("Request failed with status code " + response.statusCode());
+                }
+            } catch (URISyntaxException | InterruptedException | IOException | SQLException e) {
+                logger.debug("Attempt " + (attempt + 1) + " failed: " + e.getMessage());
+                if (attempt == maxAttempts - 1) {
+                    break;
+                }
+                try {
+                    Thread.sleep(waitTime);
+                    waitTime *= 2;
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    logger.error("Thread interrupted: " + ie.getMessage());
+                }
+            }
         }
+        // todo: handle this exception
+        throw new IllegalStateException("Failed to send request after " + maxAttempts + " attempts");
     }
+
 
     public String trimBrackets(String responseBody) {
         return responseBody.substring(1, responseBody.length() - 1);
