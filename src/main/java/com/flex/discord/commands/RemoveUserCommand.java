@@ -40,13 +40,13 @@ public class RemoveUserCommand extends SlashCommand {
 
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(name)) {
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             String username = event.getOption("user").getAsString();
             long serverId = event.getGuild().getIdLong();
             try {
                 handleUserRemoval(event, username, serverId);
             } catch (SQLException e) {
-                event.getHook().sendMessage("Something went wrong").queue();
+                event.getHook().sendMessage("Something went wrong").setEphemeral(true).queue();
             }
         }
     }
@@ -61,13 +61,13 @@ public class RemoveUserCommand extends SlashCommand {
                 //     userStorage.removeUser(userId.get());
                 // }
                 logger.debug(String.format("%s removed from server %s by %s", username, serverId, event.getUser().getAsTag()));
-                event.getHook().sendMessage("User removed").queue();
+                event.getHook().sendMessage("User removed").setEphemeral(true).queue();
 
             } else {
-                event.getHook().sendMessage("User already removed or not registered").queue();
+                event.getHook().sendMessage("User already removed or not registered").setEphemeral(true).queue();
             }
         } else {
-            event.getHook().sendMessage("User already removed or not registered").queue();
+            event.getHook().sendMessage("User already removed or not registered").setEphemeral(true).queue();
         }
     }
 }

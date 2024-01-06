@@ -29,7 +29,7 @@ public class ScoreEmbed {
                 .setUrl(data.getScoreUrl())
                 .setColor(data.getColor())
                 .setAuthor(data.getAuthor(), data.getUserUrl(), data.getAvatar())
-                .setFooter("osu!flex - " + data.getVersion())
+                .setFooter(data.getVersion())
                 .setTimestamp(Instant.now())
                 .setImage(data.getCover())
                 .build();
