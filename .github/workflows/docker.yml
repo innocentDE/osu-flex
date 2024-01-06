@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -31,3 +32,11 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: ${{ env.LATEST_TAG }}
+          build-args: |
+            MYSQL_DB_URL=${{ secrets.MYSQL_DB_URL }}
+            MYSQL_DB_USERNAME=${{ secrets.MYSQL_DB_USERNAME }}
+            MYSQL_DB_PASSWORD=${{ secrets.MYSQL_DB_PASSWORD }}
+            OSU_CLIENT_ID=${{ secrets.OSU_CLIENT_ID }}
+            OSU_CLIENT_SECRET=${{ secrets.OSU_CLIENT_SECRET }}
+            OSU_API_KEY=${{ secrets.OSU_API_KEY }}
+            DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
