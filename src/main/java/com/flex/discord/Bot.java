@@ -8,7 +8,6 @@ import com.flex.discord.commands.RemoveUserCommand;
 import com.flex.discord.listeners.GuildListener;
 import com.flex.discord.utility.BotUtility;
 import com.flex.osu.api.requests.FlexRequests;
-import com.flex.osu.api.requests.utility.RequestUtility;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
