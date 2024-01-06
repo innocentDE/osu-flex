@@ -1,6 +1,7 @@
 package com.flex;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flex.data.FlexData;
 import com.flex.database.MySqlController;
 import com.flex.discord.Bot;
 import com.flex.osu.Flex;
@@ -32,7 +33,7 @@ public class Main {
         while(true){
             flex.start();
             try {
-                Thread.sleep(10000);
+                Thread.sleep(FlexData.SLEEP);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

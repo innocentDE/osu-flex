@@ -1,5 +1,6 @@
 package com.flex.discord.entities;
 
+import com.flex.data.FlexData;
 import com.flex.osu.entities.score.Score;
 import lombok.Getter;
 import lombok.Setter;
@@ -98,7 +99,7 @@ public class ScoreEmbedData {
     }
 
     private void setColor() {
-        color = new Color(240, 98, 161);
+        color = FlexData.getRandomOsuPaletteColor();
     }
 
     private void setAuthor() {
@@ -114,7 +115,7 @@ public class ScoreEmbedData {
     }
 
     private void setVersion() {
-        version = "v1.0.0";
+        version = FlexData.CLIENT_VERSION;
     }
 
     private void setCover() {
