@@ -1,6 +1,7 @@
 package com.flex.discord.embeds;
 
 import com.flex.discord.entities.ScoreEmbedData;
+import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -15,8 +16,8 @@ public class ScoreEmbed {
     @Getter
     private MessageEmbed embed;
 
-    public ScoreEmbed(Score score) {
-        data = new ScoreEmbedData(score);
+    public ScoreEmbed(OsuData data) {
+        this.data = new ScoreEmbedData(data);
         embed = createEmbed();
     }
 
