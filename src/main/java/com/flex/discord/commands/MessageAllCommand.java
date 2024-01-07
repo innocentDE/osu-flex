@@ -32,22 +32,23 @@ public class MessageAllCommand extends SlashCommand {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        event.deferReply().setEphemeral(true).queue();
-        if (event.getName().equals(name) && ALLOWED_USER_IDS.contains(event.getUser().getId())) {
-            event.deferReply().setEphemeral(true).queue();
+        if (event.getName().equals(name)) {
+            if(ALLOWED_USER_IDS.contains(event.getUser().getId())){
+                event.deferReply().setEphemeral(true).queue();
 
-            String message = event.getOption(optionName).getAsString();
-            sendToAllServers(message);
+                String message = event.getOption(optionName).getAsString();
+                sendToAllServers(message);
 
-            event.getHook()
-                    .setEphemeral(true)
-                    .sendMessage("Message sent to all servers")
-                    .queue();
-        } else {
-            event.getHook()
-                    .setEphemeral(true)
-                    .sendMessage("You do not have permission to use this command")
-                    .queue();
+                event.getHook()
+                        .setEphemeral(true)
+                        .sendMessage("Message sent to all servers")
+                        .queue();
+            } else {
+                event.getHook()
+                        .setEphemeral(true)
+                        .sendMessage("You do not have permission to use this command")
+                        .queue();
+            }
         }
     }
 
