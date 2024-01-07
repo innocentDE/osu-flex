@@ -1,6 +1,7 @@
 package com.flex.osu;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flex.data.FlexData;
 import com.flex.database.storage.UserServersStorage;
 import com.flex.database.storage.UserStorage;
 import com.flex.discord.embeds.ScoreEmbed;
@@ -34,55 +35,40 @@ public class Flex {
         userServersStorage = new UserServersStorage(connection);
     }
 
-    public void start() throws JsonProcessingException{
-        List<Integer> userIds = null;
+    public void start() throws InterruptedException {
         try {
-            userIds = userStorage.getUserIds();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            List<Integer> userIds = userStorage.getUserIds();
 
-        List<User> users = requests.getOnlineUsers(userIds);
-        logger.debug("Currently {} out of {} users are online", users.size(), userIds.size());
+            List<User> users = requests.getOnlineUsers(userIds);
+            logger.debug("Currently {} out of {} users are online", users.size(), userIds.size());
 
-        for(User user : users){
-            Optional<Score> recentScore = requests.getScore(user.id);
+            for(User user : users){
+                Optional<Score> recentScore = requests.getScore(user.id);
 
-            if(recentScore.isEmpty()){
-                continue;
-            }
+                if(recentScore.isEmpty()) continue;
+                if(userStorage.isBestId(user.id, recentScore.get().id)) continue;
 
-            try {
-                if(userStorage.isBestId(user.id, recentScore.get().id)){
-                    continue;
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            try {
                 userStorage.insertBestId(user.id, recentScore.get().id);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Optional<Score> score = requests.isInBest(
+                        user.id,
+                        recentScore.get(),
+                        100);
+
+                sendEmbedIfInBest(user, score);
             }
-            Optional<Score> score = requests.isInBest(
-                    user.id,
-                    recentScore.get(),
-                    100);
-            sendEmbedIfInBest(user, score);
+        } catch (JsonProcessingException | SQLException e) {
+            logger.error(e);
+            Thread.sleep(FlexData.ERROR_SLEEP);
         }
     }
 
-    private void sendEmbedIfInBest(User user, Optional<Score> score) {
+    private void sendEmbedIfInBest(User user, Optional<Score> score) throws SQLException {
         if(score.isPresent()){
             ScoreEmbed embed = new ScoreEmbed(score.get());
-            Map<String, String> servers = null;
-            try {
-                servers = userServersStorage.getServersByUser(score.get().user_id);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+            Map<String, String> servers = userServersStorage.getServersByUser(score.get().user_id);
 
             if(servers.isEmpty()){
+                // todo: remove user from table
                 logger.debug("No servers found for user " + user.username);
                 return;
             }

@@ -1,10 +1,9 @@
 package com.flex.discord.embeds;
 
+import com.flex.data.FlexData;
 import lombok.Getter;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-
-import java.awt.*;
 
 @Getter
 public class HelpEmbed {
@@ -17,33 +16,41 @@ public class HelpEmbed {
 
     private MessageEmbed createEmbed() {
         return new EmbedBuilder()
-                .setTitle("osu!flex")
-                .setDescription("osu!flex is a discord bot that allows you to track players' top plays and send them to your discord server")
+                .setTitle("Help")
+                .setDescription("A list of commands for the bot")
                 .addField(
                         "/add [username]",
-                        "adds a user to osu!flex",
-                        true
+                        "Adds a user to osu!flex",
+                        false
                 )
                 .addField(
                         "/remove [username]",
-                        "removes a user from osu!flex",
-                        true
+                        "Removes a user from osu!flex",
+                        false
                 )
                 .addField(
                         "/set [channel]",
-                        "sets the channel where osu!flex sends the top plays",
-                        true
+                        "Sets the channel where osu!flex sends the top plays",
+                        false
                 )
                 .addField(
                         "/list",
-                        "lists all tracked users on this server",
-                        true
+                        "Lists all tracked users on this server",
+                        false
                 )
-                .addField("Links",
-                        "For help or (feature) requests join the [osu!flex](https://discord.gg/PxFdAkejV9) discord server!\n" +
-                        "Bug report and contribution on [GitHub](https://github.com/innocentDE/osu-flex).", false)
-                .setColor(new Color(255, 255, 255))
-                .setFooter("osu!flex - v.1.0.0")
+                .addField(
+                        "/help",
+                        "Opens a list with all commands for the bot",
+                        false
+                )
+                .addField(
+                        "Links",
+                        "For help join the [osu!flex](https://discord.gg/PxFdAkejV9) discord server!\n" +
+                                "Bug report on [GitHub](https://github.com/innocentDE/osu-flex).",
+                        false
+                )
+                .setColor(FlexData.getRandomOsuPaletteColor())
+                .setFooter(FlexData.CLIENT_VERSION)
                 .build();
     }
 }

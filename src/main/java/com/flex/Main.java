@@ -1,6 +1,6 @@
 package com.flex;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flex.data.FlexData;
 import com.flex.database.MySqlController;
 import com.flex.discord.Bot;
 import com.flex.osu.Flex;
@@ -11,7 +11,7 @@ import java.sql.SQLException;
 
 public class Main {
 
-    public static void main(String[] args) throws SQLException, JsonProcessingException {
+    public static void main(String[] args) throws InterruptedException, SQLException {
 
         MySqlController database = new MySqlController();
         database.connect(
@@ -31,11 +31,8 @@ public class Main {
         Flex flex = new Flex(bot.getApi(), database.getConnection());
         while(true){
             flex.start();
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(FlexData.SLEEP);
+
         }
     }
 }
