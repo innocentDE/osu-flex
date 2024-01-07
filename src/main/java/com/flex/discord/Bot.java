@@ -49,7 +49,7 @@ public class Bot {
 
             logger.info("Bot started");
         } catch (InterruptedException | SQLException e) {
-            logger.fatal("Failed to start bot" + e.getMessage());
+            logger.fatal("Failed to start bot " + e.getMessage());
             System.exit(1);
         }
     }

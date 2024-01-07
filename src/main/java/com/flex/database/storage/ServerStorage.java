@@ -57,9 +57,9 @@ public class ServerStorage extends MySqlStorage {
         PreparedStatement statement = connection.prepareStatement(query);
         for(long serverId : serverIds){
             statement.setLong(1, serverId);
-            statement.executeUpdate();
+            statement.addBatch();
         }
-        statement.executeUpdate();
+        statement.executeBatch();
     }
 
     public void setChannel(long serverId, long channelId) throws SQLException {
