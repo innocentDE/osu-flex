@@ -34,7 +34,7 @@ public class MessageAllCommand extends SlashCommand {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         if (event.getName().equals(name) && ALLOWED_USER_IDS.contains(event.getUser().getId())) {
-            event.deferReply().queue();
+            event.deferReply().setEphemeral(true).queue();
             String message = event.getOption(optionName).getAsString();
             sendToAllServers(message);
             event.getHook().sendMessage("Message sent to all servers").queue();
