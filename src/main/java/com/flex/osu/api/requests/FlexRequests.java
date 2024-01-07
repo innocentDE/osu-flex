@@ -3,6 +3,7 @@ package com.flex.osu.api.requests;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.flex.osu.api.requests.utility.RequestUtility;
+import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import lombok.Getter;
@@ -62,13 +63,29 @@ public class FlexRequests {
         return scores;
     }
 
-    public Optional<Score> isInBest(int userId, Score score, int amount) throws JsonProcessingException {
-        List<Score> scores = getBestScores(userId, amount);
-        Collections.reverse(scores); // get lowest pp score first
+    public OsuData isInBest(User user, Score score, int amount) throws JsonProcessingException {
+        List<Score> scores = getBestScores(user.id, amount);
+        // get lowest pp score first
+        Collections.reverse(scores);
+        OsuData data = new OsuData();
+
         if (score.pp > scores.get(0).pp) {
-            return Optional.of(score);
+            data.setUser(user);
+            data.setScore(score);
+            data.setScoreIndex(getScoreIndex(scores, score));
+            data.setBest(true);
         }
-        return Optional.empty();
+        return data;
+    }
+
+    private int getScoreIndex(List<Score> scores, Score recent) {
+        int index = scores.size() + 1;
+        for (Score score : scores) {
+            if (recent.pp > score.pp) {
+                index--;
+            }
+        }
+        return index;
     }
 
     public List<User> getOnlineUsers(List<Integer> userIds) throws JsonProcessingException {
