@@ -37,10 +37,14 @@ public class RequestUtility {
     public RequestUtility(Connection connection) {
         credentialStorage = new CredentialStorage(connection);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        try {
+            updateAccessToken();
+        } catch (SQLException e) {
+            logger.error("Failed to update access token: " + e.getMessage());
+        }
     }
 
     private void updateAccessToken() throws SQLException {
-
         accessToken = credentialStorage.getAccessToken();
     }
 
