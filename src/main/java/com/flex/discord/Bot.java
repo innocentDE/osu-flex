@@ -1,5 +1,6 @@
 package com.flex.discord;
 
+import com.flex.discord.commands.MessageAllCommand;
 import com.flex.database.storage.ServerStorage;
 import com.flex.discord.commands.HelpCommand;
 import com.flex.discord.commands.SetChannelCommand;
@@ -42,6 +43,7 @@ public class Bot {
                     new SetChannelCommand(api, requests),
                     new AddUserCommand(api, requests),
                     new RemoveUserCommand(api, requests),
+                    new MessageAllCommand(api),
                     new HelpCommand(api, requests)
             );
             utility.updateGuilds();

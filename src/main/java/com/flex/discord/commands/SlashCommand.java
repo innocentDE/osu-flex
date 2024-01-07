@@ -15,9 +15,15 @@ public abstract class SlashCommand extends ListenerAdapter {
     protected SlashCommandData command;
     protected FlexRequests requests;
 
-    public SlashCommand(JDA api, FlexRequests requests) {
+    public SlashCommand(JDA api) {
         this.api = api;
-        this.requests = requests;
+        createCommand();
+    }
+
+    public SlashCommand(JDA api, String name, String description) {
+        this.api = api;
+        this.name = name;
+        this.description = description;
         createCommand();
     }
 
