@@ -37,7 +37,7 @@ public class Bot {
     private void initialize(String token) {
         try {
             api = JDABuilder.createDefault(token).build().awaitReady();
-            BotUtility utility = new BotUtility(api, serverStorage);
+            BotUtility utility = new BotUtility(api, connection);
             utility.registerCommands(
                     new SetChannelCommand(api, requests),
                     new AddUserCommand(api, requests),
@@ -49,7 +49,7 @@ public class Bot {
 
             logger.info("Bot started");
         } catch (InterruptedException | SQLException e) {
-            logger.fatal("Failed to start bot");
+            logger.fatal("Failed to start bot" + e.getMessage());
             System.exit(1);
         }
     }

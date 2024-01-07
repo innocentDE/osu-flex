@@ -1,6 +1,7 @@
 package com.flex.discord.utility;
 
 import com.flex.database.storage.ServerStorage;
+import com.flex.database.storage.UserServersStorage;
 import com.flex.discord.commands.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
@@ -8,6 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -15,12 +17,14 @@ public class BotUtility {
 
     private final JDA api;
     private final ServerStorage serverStorage;
+    private final UserServersStorage userServersStorage;
     private final Logger logger = LogManager.getLogger(BotUtility.class);
 
 
-    public BotUtility(JDA api, ServerStorage serverStorage) {
+    public BotUtility(JDA api, Connection connection) {
         this.api = api;
-        this.serverStorage = serverStorage;
+        this.serverStorage = new ServerStorage(connection);
+        this.userServersStorage = new UserServersStorage(connection);
     }
 
     public void registerCommands(SlashCommand... commands) {
@@ -71,6 +75,11 @@ public class BotUtility {
                 .toList();
 
         serverStorage.registerServers(newGuilds);
+
+        for(Long leftGuildId : leftGuildIds){
+            userServersStorage.removeAllKeys(leftGuildId);
+        }
+
         serverStorage.unregisterServers(leftGuildIds);
 
         logger.debug("Registered {} new guilds while {} guilds left", newGuildIds.size(), leftGuildIds.size());
