@@ -6,6 +6,7 @@ import com.flex.database.storage.UserServersStorage;
 import com.flex.database.storage.UserStorage;
 import com.flex.discord.embeds.ScoreEmbed;
 import com.flex.osu.api.requests.FlexRequests;
+import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import net.dv8tion.jda.api.JDA;
@@ -49,12 +50,12 @@ public class Flex {
                 if(userStorage.isBestId(user.id, recentScore.get().id)) continue;
 
                 userStorage.insertBestId(user.id, recentScore.get().id);
-                Optional<Score> score = requests.isInBest(
-                        user.id,
+                OsuData data = requests.isInBest(
+                        user,
                         recentScore.get(),
                         100);
 
-                sendEmbedIfInBest(user, score);
+                sendEmbedIfInBest(data);
             }
         } catch (JsonProcessingException | SQLException e) {
             logger.error(e);
@@ -62,49 +63,49 @@ public class Flex {
         }
     }
 
-    private void sendEmbedIfInBest(User user, Optional<Score> score) throws SQLException {
-        if(score.isPresent()){
-            ScoreEmbed embed = new ScoreEmbed(score.get());
-            Map<String, String> servers = userServersStorage.getServersByUser(score.get().user_id);
+    private void sendEmbedIfInBest(OsuData data) throws SQLException {
+        if(data.isBest()){
+            ScoreEmbed embed = new ScoreEmbed(data);
+            Map<String, String> servers = userServersStorage.getServersByUser(data.getUser().id);
 
             if(servers.isEmpty()){
                 // todo: remove user from table
-                logger.debug("No servers found for user " + user.username);
+                logger.debug("No servers found for user " + data.getUser().username);
                 return;
             }
 
-            if (hasBotPermission(servers))
-                return;
-
             for(Map.Entry<String, String> server : servers.entrySet()){
+
+                if(hasBotPermission(server.getKey(), server.getValue())) continue;
+
                 api.getGuildById((server.getKey()))
                         .getTextChannelById(server.getValue())
                         .sendMessageEmbeds(embed.getEmbed())
                         .queue();
-                logger.debug("Sent embed for user " + user.username + " to server " + server.getKey());
+                logger.debug("Sent embed for user " + data.getUser().username + " to server " + server.getKey());
             }
         }
     }
 
-    private boolean hasBotPermission(Map<String, String> servers) {
-        for(Map.Entry<String, String> server : servers.entrySet()){
-            if(!api.getGuildById(server.getKey())
-                    .getSelfMember()
-                    .hasPermission(api.getGuildById(server.getKey())
-                            .getTextChannelById(server.getValue()),
-                            Permission.MESSAGE_SEND)) {
-                logger.debug("Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey());
+    // todo: parameter Guild instead of 2, split logic from method (check permission in another method)
+    private boolean hasBotPermission(String serverId, String channelId){
 
-                api.getGuildById(server.getKey())
+            if(!api.getGuildById(serverId)
+                    .getSelfMember()
+                    .hasPermission(api.getGuildById(serverId)
+                            .getTextChannelById(channelId),
+                            Permission.MESSAGE_SEND)) {
+                logger.debug("Bot has no permission to send messages to channel " + channelId + " in server " + serverId);
+
+                api.getGuildById(serverId)
                         .retrieveOwner()
                         .complete()
                         .getUser()
                         .openPrivateChannel()
                         .queue((channel) -> channel.sendMessage(
-                                "Bot has no permission to send messages to channel " + server.getValue() + " in server " + server.getKey()).queue()
+                                "Bot has no permission to send messages to channel " + serverId + " in server " + serverId).queue()
                         );
                 return true;
-            }
         }
         return false;
     }

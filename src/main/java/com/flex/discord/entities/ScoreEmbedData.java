@@ -2,6 +2,7 @@ package com.flex.discord.entities;
 
 import com.flex.data.FlexData;
 import com.flex.osu.api.requests.utility.ColorFinder;
+import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import lombok.Getter;
 import lombok.Setter;
@@ -36,9 +37,11 @@ public class ScoreEmbedData {
     private String avatar;
     private String version;
     private String cover;
+    private int scoreIndex;
 
-    public ScoreEmbedData(Score score) {
-        this.score = score;
+    public ScoreEmbedData(OsuData data) {
+        this.score = data.getScore();
+        this.scoreIndex = data.getScoreIndex();
         setDefaults();
     }
 
@@ -116,7 +119,7 @@ public class ScoreEmbedData {
     }
 
     private void setAuthor() {
-        author = String.format("Score of %s", score.user.username);
+        author = String.format("New #%s top play for %s", scoreIndex, score.user.username);
     }
 
     private void setUserUrl() {
