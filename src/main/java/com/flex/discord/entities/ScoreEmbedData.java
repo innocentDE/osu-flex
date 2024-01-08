@@ -1,18 +1,24 @@
 package com.flex.discord.entities;
 
 import com.flex.data.FlexData;
+import com.flex.osu.api.requests.utility.ColorFinder;
 import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.awt.*;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.Duration;
 
 @Getter
 @Setter
 public class ScoreEmbedData {
+
+    private final Logger logger = LogManager.getLogger(ScoreEmbedData.class);
 
     private final Score score;
     private String title;
@@ -102,7 +108,14 @@ public class ScoreEmbedData {
     }
 
     private void setColor() {
-        color = FlexData.getRandomOsuPaletteColor();
+
+        ColorFinder colorFinder = new ColorFinder();
+        try {
+            color = colorFinder.getDominantColor(score.user.avatar_url);
+        } catch (IOException e) {
+            logger.warn(e.getStackTrace());
+            color = FlexData.getRandomOsuPaletteColor();
+        }
     }
 
     private void setAuthor() {
