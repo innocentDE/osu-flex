@@ -1,5 +1,6 @@
 package com.flex.database.storage;
 
+import com.flex.data.FlexData;
 import org.apache.logging.log4j.LogManager;
 
 import java.sql.Connection;
@@ -67,5 +68,34 @@ public class UserServersStorage extends MySqlStorage {
             );
         }
         return servers;
+    }
+
+    public void setThreshold(long serverId, int threshold) throws SQLException {
+        String query = "UPDATE user_servers SET threshold = ? WHERE serverId = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, threshold);
+        statement.setLong(2, serverId);
+        statement.executeUpdate();
+    }
+
+    public void setThreshold(int userId, long serverId, int threshold) throws SQLException {
+        String query = "UPDATE user_servers SET threshold = ? WHERE userId = ? AND serverId = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, threshold);
+        statement.setInt(2, userId);
+        statement.setLong(3, serverId);
+        statement.executeUpdate();
+    }
+
+    public int getThreshold(int userId, long serverId) throws SQLException {
+        String query = "SELECT threshold FROM user_servers WHERE userId = ? AND serverId = ?";
+        PreparedStatement statement = connection.prepareStatement(query);
+        statement.setInt(1, userId);
+        statement.setLong(2, serverId);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.next()) {
+            return resultSet.getInt("threshold");
+        }
+        return FlexData.DEFAULT_THRESHOLD;
     }
 }
