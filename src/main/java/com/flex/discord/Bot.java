@@ -1,22 +1,20 @@
 package com.flex.discord;
 
-import com.flex.discord.commands.MessageAllCommand;
+import com.flex.discord.commands.*;
 import com.flex.database.storage.ServerStorage;
-import com.flex.discord.commands.HelpCommand;
-import com.flex.discord.commands.SetChannelCommand;
-import com.flex.discord.commands.AddUserCommand;
-import com.flex.discord.commands.RemoveUserCommand;
 import com.flex.discord.listeners.GuildListener;
 import com.flex.discord.utility.BotUtility;
 import com.flex.osu.api.requests.FlexRequests;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 public class Bot {
 
@@ -39,12 +37,15 @@ public class Bot {
         try {
             api = JDABuilder.createDefault(token).build().awaitReady();
             BotUtility utility = new BotUtility(api, connection);
+            List<Guild> guilds = api.getGuilds();
+            utility.registerCommands(guilds, new ThresholdCommand(api, requests));
             utility.registerCommands(
                     new SetChannelCommand(api, requests),
                     new AddUserCommand(api, requests),
                     new RemoveUserCommand(api, requests),
                     new MessageAllCommand(api),
-                    new HelpCommand(api, requests)
+                    new HelpCommand(api, requests),
+                    new ThresholdCommand(api, requests)
             );
             utility.updateGuilds();
             api.addEventListener(new GuildListener(connection));

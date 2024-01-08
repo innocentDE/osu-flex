@@ -26,7 +26,6 @@ public class Flex {
     private final JDA api;
     private final UserStorage userStorage;
     private final UserServersStorage userServersStorage;
-
     private final FlexRequests requests;
 
     public Flex(JDA api, Connection connection){
@@ -39,22 +38,22 @@ public class Flex {
     public void start() throws InterruptedException {
         try {
             List<Integer> userIds = userStorage.getUserIds();
-
             List<User> users = requests.getOnlineUsers(userIds);
             logger.debug("Currently {} out of {} users are online", users.size(), userIds.size());
 
             for(User user : users){
                 Optional<Score> recentScore = requests.getScore(user.id);
 
-                if(recentScore.isEmpty()) continue;
-                if(userStorage.isBestId(user.id, recentScore.get().id)) continue;
+                if(recentScore.isEmpty()) {
+                    logger.debug(String.format("User %s has no recent score", user.username));
+                    continue;
+                }
+                if(userStorage.isBestId(user.id, recentScore.get().id)){
+                    continue;
+                }
 
                 userStorage.insertBestId(user.id, recentScore.get().id);
-                OsuData data = requests.isInBest(
-                        user,
-                        recentScore.get(),
-                        100);
-
+                OsuData data = requests.isInBest(user, recentScore.get());
                 sendEmbedIfInBest(data);
             }
         } catch (JsonProcessingException | SQLException e) {
@@ -68,6 +67,7 @@ public class Flex {
             ScoreEmbed embed = new ScoreEmbed(data);
             Map<String, String> servers = userServersStorage.getServersByUser(data.getUser().id);
 
+
             if(servers.isEmpty()){
                 // todo: remove user from table
                 logger.debug("No servers found for user " + data.getUser().username);
@@ -76,7 +76,17 @@ public class Flex {
 
             for(Map.Entry<String, String> server : servers.entrySet()){
 
-                if(hasBotPermission(server.getKey(), server.getValue())) continue;
+                int threshold = userServersStorage.getThreshold(data.getUser().id, Long.parseLong(server.getKey()));
+
+                if(data.getScoreIndex() > threshold){
+                    logger.debug(String.format("Score didn't reach threshold %d for user %s", threshold, data.getUser().username));
+                    continue;
+                }
+                if(hasBotPermission(server.getKey(), server.getValue())) {
+                    logger.debug(String.format("Bot has no permission to send messages to channel %s in server %s",
+                            server.getValue(), server.getKey()));
+                    continue;
+                }
 
                 api.getGuildById((server.getKey()))
                         .getTextChannelById(server.getValue())
