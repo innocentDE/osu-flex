@@ -31,62 +31,32 @@ public class AccessTokenProvider {
                 "scope": "public"
             }
             """;
-    private static final int TOKEN_RENEWAL_LEAD_TIME = 5;
-    private final Logger logger = LogManager.getLogger(AccessTokenProvider.class);
-    private final CredentialStorage credentialStorage;
-    private final HttpClient httpClient;
-    private final String clientId;
-    private final String clientSecret;
+
+    private static final Logger logger = LogManager.getLogger(AccessTokenProvider.class);
+    private static CredentialStorage credentialStorage;
+    private static HttpClient httpClient;
+    private static String clientId;
+    private static String clientSecret;
 
     public AccessTokenProvider(String clientId, String clientSecret, Connection connection, HttpClient httpClient) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.credentialStorage = new CredentialStorage(connection);
-        this.httpClient = httpClient;
+        AccessTokenProvider.clientId = clientId;
+        AccessTokenProvider.clientSecret = clientSecret;
+        AccessTokenProvider.credentialStorage = new CredentialStorage(connection);
+        AccessTokenProvider.httpClient = httpClient;
     }
 
     public void obtainAccessToken() throws SQLException {
-        int delay = 0;
-        int period = 1440 - TOKEN_RENEWAL_LEAD_TIME;
-        int expiry = -TOKEN_RENEWAL_LEAD_TIME;
         if (credentialStorage.hasAccessToken()) {
             logger.info("Access token found in database.");
-            if (!credentialStorage.isAccessTokenExpired()) {
-                expiry += credentialStorage.getExpiry();
-                delay = period + expiry;
-                oneTimeAccessTokenRenewal(expiry);
-            }
+            if (!credentialStorage.isAccessTokenExpired())
+                logger.info("Access token is still valid.");
         } else {
             logger.info("Access token not found in database.");
-        }
-        scheduleAccessTokenRenewal(delay, period);
-    }
-
-    private void scheduleTokenRenewal(int delay, int period, boolean isFixedRate) {
-        LocalDateTime renewalTime = LocalDateTime.now().plusMinutes(delay);
-        String formattedTime = renewalTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy - HH:mm"));
-        String renewalType = isFixedRate ? "one-time " : "";
-
-        logger.info("Scheduled {}access token renewal at {}", renewalType, formattedTime);
-
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        if (isFixedRate) {
-            scheduler.schedule(this::requestAndStoreAccessToken, delay, TimeUnit.MINUTES);
-        } else {
-            scheduler.scheduleAtFixedRate(this::requestAndStoreAccessToken, delay, period, TimeUnit.MINUTES);
+            requestAndStoreAccessToken();
         }
     }
 
-    private void scheduleAccessTokenRenewal(int delay, int period) {
-        scheduleTokenRenewal(delay, period, false);
-    }
-
-    private void oneTimeAccessTokenRenewal(int expiry) {
-        scheduleTokenRenewal(expiry, 0, true);
-    }
-
-    private void requestAndStoreAccessToken() {
+    public static void requestAndStoreAccessToken() {
         try {
             HttpResponse<String> response = sendAccessTokenRequest();
             storeAccessTokenInDatabase(parseAccessToken(response));
@@ -96,7 +66,7 @@ public class AccessTokenProvider {
         }
     }
 
-    private HttpResponse<String> sendAccessTokenRequest() throws URISyntaxException, IOException, InterruptedException {
+    private static HttpResponse<String> sendAccessTokenRequest() throws URISyntaxException, IOException, InterruptedException {
         String requestBody = String.format(TOKEN_REQUEST_BODY_FORMAT, clientId, clientSecret);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(TOKEN_REQUEST_URI))
@@ -106,12 +76,12 @@ public class AccessTokenProvider {
         return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    private String parseAccessToken(HttpResponse<String> response) throws JSONException {
+    private static String parseAccessToken(HttpResponse<String> response) throws JSONException {
         JSONObject json = new JSONObject(response.body());
         return json.getString("access_token");
     }
 
-    private void storeAccessTokenInDatabase(String accessToken) throws SQLException {
+    private static void storeAccessTokenInDatabase(String accessToken) throws SQLException {
         credentialStorage.insertAccessToken(accessToken);
     }
 }
