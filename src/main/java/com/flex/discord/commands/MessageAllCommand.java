@@ -5,12 +5,9 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
-import java.util.Arrays;
-import java.util.List;
+import static com.flex.data.FlexData.DEVELOPER_DISCORD_IDS;
 
 public class MessageAllCommand extends SlashCommand {
-
-    private static final List<String> ALLOWED_USER_IDS = Arrays.asList("283613120981762049", "340774639821127680");
 
     public MessageAllCommand(JDA api) {
         super(
@@ -33,7 +30,7 @@ public class MessageAllCommand extends SlashCommand {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (event.getName().equals(name)) {
-            if(ALLOWED_USER_IDS.contains(event.getUser().getId())){
+            if(DEVELOPER_DISCORD_IDS.contains(event.getUser().getId())){
                 event.deferReply().setEphemeral(true).queue();
 
                 String message = event.getOption(optionName).getAsString();

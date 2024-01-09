@@ -2,10 +2,8 @@ package com.flex.discord.utility;
 
 import com.flex.database.storage.ServerStorage;
 import com.flex.database.storage.UserServersStorage;
-import com.flex.discord.commands.SlashCommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.interactions.commands.Command;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,43 +18,11 @@ public class BotUtility {
     private final UserServersStorage userServersStorage;
     private final Logger logger = LogManager.getLogger(BotUtility.class);
 
-
     public BotUtility(JDA api, Connection connection) {
         this.api = api;
         this.serverStorage = new ServerStorage(connection);
         this.userServersStorage = new UserServersStorage(connection);
     }
-
-    public void registerCommands(SlashCommand... commands) {
-        for (SlashCommand command : commands) {
-            command.registerGlobally();
-        }
-    }
-
-    public void registerCommands(List<Guild> guilds, SlashCommand... commands) {
-        for (Guild guild : guilds) {
-            for (SlashCommand command : commands) {
-                command.registerForGuild(guild);
-            }
-        }
-    }
-
-    public void deleteAllGlobalCommands() {
-        api.retrieveCommands().queue(commands -> {
-            for (Command command : commands) {
-                api.deleteCommandById(command.getId()).queue();
-            }
-        });
-    }
-
-    public void deleteAllGuildCommands(Guild guild) {
-        guild.retrieveCommands().queue(commands -> {
-            for (Command command : commands) {
-                guild.deleteCommandById(command.getId()).queue();
-            }
-        });
-    }
-
 
     public void updateGuilds() throws SQLException {
         List<Long> storageGuilds = serverStorage.getServerIds();

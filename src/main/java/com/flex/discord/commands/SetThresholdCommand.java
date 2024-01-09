@@ -8,17 +8,16 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.Optional;
 
-public class ThresholdCommand extends SlashCommand{
+public class SetThresholdCommand extends SlashCommand{
 
     private final UserServersStorage userServersStorage;
     private final UserStorage userStorage;
 
-    public ThresholdCommand(JDA api, FlexRequests requests) {
+    public SetThresholdCommand(JDA api, FlexRequests requests) {
         super(
                 api,
                 requests,
@@ -36,8 +35,7 @@ public class ThresholdCommand extends SlashCommand{
                 .addOption(OptionType.STRING, "user", "The user to set the threshold for", false);
     }
 
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+    public void execute(SlashCommandInteractionEvent event) {
         if (event.getName().equals(name)) {
             event.deferReply().setEphemeral(true).queue();
 
@@ -52,18 +50,18 @@ public class ThresholdCommand extends SlashCommand{
                     threshold = getThresholdFromOption(event);
                     setUserThreshold(event, userId, threshold, username);
                 } catch (IllegalArgumentException e) {
-                    sendMessage(event, e.getMessage());
+                    super.sendMessage(event, e.getMessage());
                 } catch (SQLException e) {
-                    sendMessage(event, "Something went wrong");
+                    super.sendMessage(event, "Something went wrong");
                 }
             } else {
                 try {
                     threshold = getThresholdFromOption(event);
                     setGlobalThreshold(event, threshold);
                 } catch (IllegalArgumentException e) {
-                    sendMessage(event, e.getMessage());
+                    super.sendMessage(event, e.getMessage());
                 } catch (SQLException e) {
-                    sendMessage(event, "Something went wrong");
+                    super.sendMessage(event, "Something went wrong");
                 }
             }
         }
@@ -95,10 +93,6 @@ public class ThresholdCommand extends SlashCommand{
             throw new IllegalArgumentException("User is not registered");
         }
         return userId.get();
-    }
-
-    private void sendMessage(SlashCommandInteractionEvent event, String message) {
-        event.getHook().editOriginal(message).queue();
     }
 
     private void setGlobalThreshold(SlashCommandInteractionEvent event, int threshold) throws SQLException {
