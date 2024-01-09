@@ -1,5 +1,6 @@
 package com.flex.discord.registries;
 
+import com.flex.data.FlexData;
 import com.flex.discord.commands.*;
 import com.flex.osu.api.requests.FlexRequests;
 import lombok.AccessLevel;
@@ -11,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public class CommandRegistry {
@@ -25,6 +27,7 @@ public class CommandRegistry {
     private SetChannelCommand setChannelCommand;
     private SetThresholdCommand setThresholdCommand;
     private HelpCommand helpCommand;
+    private MessageAllCommand messageAllCommand;
 
     private final Logger logger = LogManager.getLogger(CommandRegistry.class);
 
@@ -40,6 +43,7 @@ public class CommandRegistry {
         setChannelCommand = new SetChannelCommand(api, requests);
         setThresholdCommand = new SetThresholdCommand(api, requests);
         helpCommand = new HelpCommand(api, requests);
+        messageAllCommand = new MessageAllCommand(api);
     }
 
     public void registerCommands() {
@@ -48,6 +52,7 @@ public class CommandRegistry {
         setChannelCommand.registerGlobally();
         setThresholdCommand.registerGlobally();
         helpCommand.registerGlobally();
+        // messageAllCommand.registerForGuild(Objects.requireNonNull(api.getGuildById(FlexData.OSU_FLEX_DISCORD_ID)));
         logger.info("Registered all global slash commands");
     }
 

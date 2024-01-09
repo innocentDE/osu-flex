@@ -20,7 +20,6 @@ public class MessageAllCommand extends SlashCommand {
     private final String optionName = "message";
     private final String optionDescription = "The message to send";
 
-
     @Override
     protected void createCommand() {
         command = Commands.slash(super.name, super.description)
@@ -29,23 +28,13 @@ public class MessageAllCommand extends SlashCommand {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getName().equals(name)) {
-            if(DEVELOPER_DISCORD_IDS.contains(event.getUser().getId())){
-                event.deferReply().setEphemeral(true).queue();
-
-                String message = event.getOption(optionName).getAsString();
-                sendToAllServers(message);
-
-                event.getHook()
-                        .setEphemeral(true)
-                        .sendMessage("Message sent to all servers")
-                        .queue();
-            } else {
-                event.getHook()
-                        .setEphemeral(true)
-                        .sendMessage("You do not have permission to use this command")
-                        .queue();
-            }
+        if(DEVELOPER_DISCORD_IDS.contains(event.getUser().getId())){
+            event.deferReply().setEphemeral(true).queue();
+            String message = event.getOption(optionName).getAsString();
+            sendToAllServers(message);
+            super.sendMessage(event, "Message sent to all servers");
+        } else {
+            super.sendMessage(event, "You do not have permission to use this command");
         }
     }
 

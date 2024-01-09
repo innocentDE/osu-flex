@@ -1,6 +1,5 @@
 package com.flex.discord;
 
-import com.flex.discord.listeners.DirectMessageListener;
 import com.flex.discord.listeners.GuildListener;
 import com.flex.discord.listeners.SlashCommandListener;
 import com.flex.discord.registries.CommandRegistry;
@@ -42,7 +41,6 @@ public class Bot {
     private void addListener() {
         api.addEventListener(new GuildListener(connection));
         api.addEventListener(new SlashCommandListener(api, registry));
-        api.addEventListener(new DirectMessageListener());
         logger.debug("Listeners added");
     }
 }
