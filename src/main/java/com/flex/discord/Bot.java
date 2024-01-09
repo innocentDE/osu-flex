@@ -1,59 +1,46 @@
 package com.flex.discord;
 
-import com.flex.discord.commands.*;
-import com.flex.database.storage.ServerStorage;
 import com.flex.discord.listeners.GuildListener;
+import com.flex.discord.listeners.SlashCommandListener;
+import com.flex.discord.registries.CommandRegistry;
 import com.flex.discord.utility.BotUtility;
-import com.flex.osu.api.requests.FlexRequests;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Guild;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 
 public class Bot {
 
     @Getter
     private JDA api;
-    private final FlexRequests requests;
-    private final ServerStorage serverStorage;
     private final Connection connection;
+    private CommandRegistry registry;
+    private BotUtility utility;
+
     private final Logger logger = LogManager.getLogger(Bot.class);
 
-    public Bot(String token, Connection connection) {
+    public Bot(String token, Connection connection) throws SQLException, InterruptedException {
         this.connection = connection;
-        requests = new FlexRequests(connection);
-        serverStorage = new ServerStorage(connection);
-
         initialize(token);
     }
 
-    private void initialize(String token) {
-        try {
-            api = JDABuilder.createDefault(token).build().awaitReady();
-            BotUtility utility = new BotUtility(api, connection);
-            List<Guild> guilds = api.getGuilds();
-            utility.registerCommands(guilds, new ThresholdCommand(api, requests));
-            utility.registerCommands(
-                    new SetChannelCommand(api, requests),
-                    new AddUserCommand(api, requests),
-                    new RemoveUserCommand(api, requests),
-                    new MessageAllCommand(api),
-                    new HelpCommand(api, requests),
-                    new ThresholdCommand(api, requests)
-            );
-            utility.updateGuilds();
-            api.addEventListener(new GuildListener(connection));
+    private void initialize(String token) throws SQLException, InterruptedException {
+        api = JDABuilder.createDefault(token).build().awaitReady();
+        registry = new CommandRegistry(api, connection);
+        utility = new BotUtility(api, connection);
+        utility.updateGuilds();
+        registry.registerCommands();
+        addListener();
+        logger.info("Bot started");
+    }
 
-            logger.info("Bot started");
-        } catch (InterruptedException | SQLException e) {
-            logger.fatal("Failed to start bot " + e.getMessage());
-            System.exit(1);
-        }
+    private void addListener() {
+        api.addEventListener(new GuildListener(connection));
+        api.addEventListener(new SlashCommandListener(api, registry));
+        logger.debug("Listeners added");
     }
 }

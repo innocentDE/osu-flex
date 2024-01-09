@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flex.database.storage.CredentialStorage;
+import com.flex.osu.api.requests.AccessTokenProvider;
 import com.flex.osu.entities.user.User;
 import lombok.Getter;
 import org.apache.http.HttpStatus;
@@ -36,15 +37,17 @@ public class RequestUtility {
 
     public RequestUtility(Connection connection) {
         credentialStorage = new CredentialStorage(connection);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
-            updateAccessToken();
+            accessToken = credentialStorage.getAccessToken();
         } catch (SQLException e) {
-            logger.error("Failed to update access token: " + e.getMessage());
+            // todo: handle exception properly
+            logger.fatal("Failed to get access token from database: " + e.getMessage());
         }
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     private void updateAccessToken() throws SQLException {
+        AccessTokenProvider.requestAndStoreAccessToken();
         accessToken = credentialStorage.getAccessToken();
     }
 

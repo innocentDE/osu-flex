@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class HelpCommand extends SlashCommand {
+
     public HelpCommand(JDA api, FlexRequests requests) {
         super(
                 api,
@@ -21,11 +22,7 @@ public class HelpCommand extends SlashCommand {
         command = Commands.slash(name, description);
     }
 
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        HelpEmbed embed = new HelpEmbed();
-        if (event.getName().equals(name)) {
-            event.replyEmbeds(embed.getEmbed()).queue();
-        }
+    public void execute(SlashCommandInteractionEvent event) {
+        sendEmbed(event, new HelpEmbed().getEmbed());
     }
 }
