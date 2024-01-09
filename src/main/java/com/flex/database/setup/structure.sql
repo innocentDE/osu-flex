@@ -1,4 +1,4 @@
-CREATE DATABASE flex;
+CREATE DATABASE IF NOT EXISTS flex;
 
 USE flex;
 
@@ -16,6 +16,7 @@ CREATE TABLE users (
 CREATE TABLE user_servers (
     userId INT,
     serverId BIGINT,
+    threshold INT DEFAULT 20,
     FOREIGN KEY (userId) REFERENCES users(id),
     FOREIGN KEY (serverId) REFERENCES servers(serverId)
 );

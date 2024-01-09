@@ -3,6 +3,7 @@ package com.flex.discord.commands;
 import com.flex.osu.api.requests.FlexRequests;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.build.SlashCommandData;
@@ -15,9 +16,15 @@ public abstract class SlashCommand extends ListenerAdapter {
     protected SlashCommandData command;
     protected FlexRequests requests;
 
-    public SlashCommand(JDA api, FlexRequests requests) {
+    public SlashCommand(JDA api) {
         this.api = api;
-        this.requests = requests;
+        createCommand();
+    }
+
+    public SlashCommand(JDA api, String name, String description) {
+        this.api = api;
+        this.name = name;
+        this.description = description;
         createCommand();
     }
 
@@ -39,9 +46,13 @@ public abstract class SlashCommand extends ListenerAdapter {
         api.addEventListener(this);
     }
 
+    protected void sendMessage(SlashCommandInteractionEvent event, String message) {
+        event.getHook().editOriginal(message).queue();
+    }
+
+    protected void sendEmbed(SlashCommandInteractionEvent event, MessageEmbed embed) {
+        event.getHook().editOriginalEmbeds(embed).queue();
+    }
+
     protected abstract void createCommand();
-
-    @Override
-    public abstract void onSlashCommandInteraction(SlashCommandInteractionEvent event);
-
 }

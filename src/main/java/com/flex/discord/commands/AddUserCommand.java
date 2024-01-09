@@ -1,6 +1,7 @@
 package com.flex.discord.commands;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flex.data.FlexData;
 import com.flex.database.storage.UserServersStorage;
 import com.flex.database.storage.UserStorage;
 import com.flex.osu.api.requests.FlexRequests;
@@ -40,15 +41,11 @@ public class AddUserCommand extends SlashCommand {
                 .addOption(OptionType.STRING, optionName, optionDescription, true);
     }
 
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getName().equals(name)) {
-            event.deferReply().queue();
-            try {
-                handleUserRegistration(event);
-            } catch (SQLException | JsonProcessingException e) {
-                event.getHook().sendMessage("Something went wrong").queue();
-            }
+    public void execute(SlashCommandInteractionEvent event) {
+        try {
+            handleUserRegistration(event);
+        } catch (SQLException | JsonProcessingException e) {
+            super.sendMessage(event, FlexData.ERROR_MESSAGE);
         }
     }
 
@@ -56,16 +53,19 @@ public class AddUserCommand extends SlashCommand {
         long guildId = event.getGuild().getIdLong();
         String username = event.getOption(optionName).getAsString();
         if (userStorage.isUserRegistered(username, guildId)) {
-            event.getHook().sendMessage("User is already registered").queue();
+            super.sendMessage(event, "User " + username + " is already registered on osu!flex");
         } else {
             Optional<User> user = requests.getUser(username);
             if (user.isPresent()) {
-                if(!userStorage.getUserId(username).isPresent())
+                if(!userStorage.getUserId(username).isPresent()){
                     userStorage.registerUser(user.get());
+                    logger.debug(String.format("%s on %s registered %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
+                }
+                logger.debug(String.format("%s on %s added %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
                 userServersStorage.addKeys(user.get().id, guildId);
-                event.getHook().sendMessage("User registered").queue();
+                super.sendMessage(event, username + " successfully added to osu!flex");
             } else {
-                event.getHook().sendMessage("User does not exist").queue();
+                super.sendMessage(event, username + " does not exist");
             }
         }
 

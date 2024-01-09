@@ -3,7 +3,7 @@ package com.flex.discord.listeners;
 import com.flex.database.storage.ServerStorage;
 import com.flex.database.storage.UserServersStorage;
 import com.flex.database.storage.UserStorage;
-import com.flex.discord.embeds.HelpEmbed;
+import com.flex.discord.embeds.JoinEmbed;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -56,7 +56,7 @@ public class GuildListener extends ListenerAdapter {
         event.getGuild()
                 .getDefaultChannel()
                 .asTextChannel()
-                .sendMessageEmbeds(new HelpEmbed().getEmbed())
+                .sendMessageEmbeds(new JoinEmbed().getEmbed())
                 .queue();
     }
 

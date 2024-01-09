@@ -1,7 +1,7 @@
 package com.flex.discord.commands;
 
+import com.flex.data.FlexData;
 import com.flex.database.storage.ServerStorage;
-import com.flex.discord.commands.SlashCommand;
 import com.flex.osu.api.requests.FlexRequests;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -31,16 +31,14 @@ public class SetChannelCommand extends SlashCommand {
                 .addOption(OptionType.CHANNEL, optionName, optionDescription, true);
     }
 
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (event.getName().equals(name)) {
-            event.deferReply().queue();
-            try {
-                handleSettingChannel(event);
-                event.getHook().sendMessage("Channel set").queue();
-            } catch (SQLException e) {
-                event.getHook().sendMessage("Failed to set channel").queue();
-            }
+    public void execute(SlashCommandInteractionEvent event) {
+        try {
+            handleSettingChannel(event);
+            super.sendMessage(event, "Channel " +
+                    event.getOption(optionName).getAsChannel().getName() +
+                    " successfully set for osu!flex messages");
+        } catch (SQLException e) {
+            super.sendMessage(event, FlexData.ERROR_MESSAGE);
         }
     }
 

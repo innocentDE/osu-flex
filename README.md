@@ -8,6 +8,7 @@ osu!flex is a discord bot that allows you to track players' top plays and send t
   <img src="assets/images/osu-flex-logo.png" alt="osu!flex logo" width="400" height="400">
 </p>
 
+> Add osu!flex to your server: [Invite](https://discord.com/api/oauth2/authorize?client_id=1188925809721872524&permissions=18432&scope=bot+applications.commands)
 
 Join our discord server for support and updates or to get in touch with the developers.
 
@@ -19,17 +20,17 @@ Join our discord server for support and updates or to get in touch with the deve
 ### Introduction
 
 - [What is osu!flex?](https://github.com/innocentDE/osu-flex/wiki/What-is-osu-flex)
-- [Note](https://github.com/innocentDE/tinkering/wiki/What-is-osu-flex/Note)
-- [Credits](https://github.com/innocentDE/tinkering/wiki/Credits)
+- [Note](https://github.com/innocentDE/osu-flex/wiki/What-is-osu-flex/Note)
+- [Credits](https://github.com/innocentDE/osu-flex/wiki/Credits)
 
 ### Contribution
 
-- [Contributing](https://github.com/innocentDE/tinkering/wiki/Contributing)
-- [Bug Reporting](https://github.com/innocentDE/tinkering/wiki/Bug-Reporting)
-- [Feature Request](https://github.com/innocentDE/tinkering/wiki/Feature-Request)
-- [Repository Structure](https://github.com/innocentDE/tinkering/wiki/Repository-Structure)
+- [Contributing](https://github.com/innocentDE/osu-flex/wiki/Contributing)
+- [Bug Reporting](https://github.com/innocentDE/osu-flex/wiki/Bug-Reporting)
+- [Feature Request](https://github.com/innocentDE/osu-flex/wiki/Feature-Request)
+- [Repository Structure](https://github.com/innocentDE/osu-flex/wiki/Repository-Structure)
 
 
 ### Self Hosting
 
-- [Self Hosting](https://github.com/innocentDE/tinkering/wiki/Self-Hosting)
+- [Self Hosting](https://github.com/innocentDE/osu-flex/wiki/Self-Hosting)

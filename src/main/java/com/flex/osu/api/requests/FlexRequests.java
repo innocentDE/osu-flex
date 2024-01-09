@@ -2,7 +2,9 @@ package com.flex.osu.api.requests;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.flex.data.FlexData;
 import com.flex.osu.api.requests.utility.RequestUtility;
+import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import lombok.Getter;
@@ -11,6 +13,7 @@ import java.net.URLEncoder;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +56,8 @@ public class FlexRequests {
         return Optional.of(score);
     }
 
-    public List<Score> getBestScores(int userId, int amount) throws JsonProcessingException {
+    public List<Score> getBestScores(int userId) throws JsonProcessingException {
+        int amount = FlexData.MAX_TOP_PLAYS;
         String uri = String.format("/users/%d/scores/best?include_fails=0&mode=osu&limit=%d", userId, amount);
         HttpResponse<String> response = utility.sendGetRequest(uri);
         List<Score> scores = utility.getMapper().readValue(response.body(), new TypeReference<List<Score>>() {
@@ -61,21 +65,44 @@ public class FlexRequests {
         return scores;
     }
 
-    public Optional<Score> isInBest(int userId, Score score, int amount) throws JsonProcessingException {
-        List<Score> scores = getBestScores(userId, amount);
-        Collections.reverse(scores); // get lowest pp score first
+    public OsuData isInBest(User user, Score score) throws JsonProcessingException {
+        List<Score> scores = getBestScores(user.id);
+        // get lowest pp score first
+        Collections.reverse(scores);
+        OsuData data = new OsuData();
+
         if (score.pp > scores.get(0).pp) {
-            return Optional.of(score);
+            data.setUser(user);
+            data.setScore(score);
+            data.setScoreIndex(getScoreIndex(scores, score));
+            data.setBest(true);
         }
-        return Optional.empty();
+        return data;
+    }
+
+    private int getScoreIndex(List<Score> scores, Score recent) {
+        int index = scores.size() + 1;
+        for (Score score : scores) {
+            if (recent.pp > score.pp) {
+                index--;
+            }
+        }
+        return index;
     }
 
     public List<User> getOnlineUsers(List<Integer> userIds) throws JsonProcessingException {
-        String queryString = utility.buildQueryString(userIds);
-        String uri = "/users?" + queryString;
-        HttpResponse<String> response = utility.sendGetRequest(uri);
-        List<User> allUsers = utility.extractUsersFromResponse(response.body());
-        List<User> onlineUsers = utility.filterOnlineUsers(allUsers);
+        int maxUsersPerRequest = 20;
+        List<User> onlineUsers = new ArrayList<>();
+        for (int i = 0; i < userIds.size(); i += maxUsersPerRequest) {
+            List<Integer> batchUserIds = userIds.subList(i, Math.min(i + maxUsersPerRequest, userIds.size()));
+            String queryString = utility.buildQueryString(batchUserIds);
+            String uri = "/users?" + queryString;
+            HttpResponse<String> response = utility.sendGetRequest(uri);
+            List<User> allUsers = utility.extractUsersFromResponse(response.body());
+            List<User> batchOnlineUsers = utility.filterOnlineUsers(allUsers);
+            onlineUsers.addAll(batchOnlineUsers);
+        }
         return onlineUsers;
     }
+
 }
