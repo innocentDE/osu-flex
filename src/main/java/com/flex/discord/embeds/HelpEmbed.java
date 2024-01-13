@@ -34,13 +34,13 @@ public class HelpEmbed {
                         false
                 )
                 .addField(
-                        "/list",
-                        "Lists all tracked users on this server",
+                        "/help",
+                        "Opens a list with all commands for the bot",
                         false
                 )
                 .addField(
-                        "/help",
-                        "Opens a list with all commands for the bot",
+                        "/threshold [threshold] | /threshold [threshold] [username]",
+                        "Sets the threshold for all registered users or for a specific user",
                         false
                 )
                 .addField(

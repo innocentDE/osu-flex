@@ -56,12 +56,14 @@ public class AddUserCommand extends SlashCommand {
             super.sendMessage(event, "User " + username + " is already registered on osu!flex");
         } else {
             Optional<User> user = requests.getUser(username);
+            String discordUsername = event.getUser().getName();
+            String guildName = event.getGuild().getName();
             if (user.isPresent()) {
                 if(!userStorage.getUserId(username).isPresent()){
                     userStorage.registerUser(user.get());
-                    logger.debug(String.format("%s on %s registered %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
+                    logger.debug(String.format("%s on %s registered %s", discordUsername, guildName, username));
                 }
-                logger.debug(String.format("%s on %s added %s", event.getUser().getAsTag(), event.getGuild().getName(), username));
+                logger.debug(String.format("%s on %s added %s", discordUsername, guildName, username));
                 userServersStorage.addKeys(user.get().id, guildId);
                 super.sendMessage(event, username + " successfully added to osu!flex");
             } else {

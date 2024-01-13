@@ -1,6 +1,5 @@
 package com.flex.discord.registries;
 
-import com.flex.data.FlexData;
 import com.flex.discord.commands.*;
 import com.flex.osu.api.requests.FlexRequests;
 import lombok.AccessLevel;
@@ -12,12 +11,10 @@ import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 public class CommandRegistry {
 
-    // ignore getter
     @Getter(AccessLevel.NONE)
     private final JDA api;
     private final FlexRequests requests;
@@ -27,7 +24,6 @@ public class CommandRegistry {
     private SetChannelCommand setChannelCommand;
     private SetThresholdCommand setThresholdCommand;
     private HelpCommand helpCommand;
-    private MessageAllCommand messageAllCommand;
 
     private final Logger logger = LogManager.getLogger(CommandRegistry.class);
 
@@ -43,7 +39,6 @@ public class CommandRegistry {
         setChannelCommand = new SetChannelCommand(api, requests);
         setThresholdCommand = new SetThresholdCommand(api, requests);
         helpCommand = new HelpCommand(api, requests);
-        messageAllCommand = new MessageAllCommand(api);
     }
 
     public void registerCommands() {

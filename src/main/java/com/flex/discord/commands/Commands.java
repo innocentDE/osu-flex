@@ -23,6 +23,6 @@ public enum Commands {
                 return command;
             }
         }
-        return null;
+        throw new IllegalArgumentException("Command " + name + " does not exist");
     }
 }

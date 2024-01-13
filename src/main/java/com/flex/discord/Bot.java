@@ -7,6 +7,7 @@ import com.flex.discord.utility.BotUtility;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.exceptions.InvalidTokenException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,19 +24,25 @@ public class Bot {
 
     private final Logger logger = LogManager.getLogger(Bot.class);
 
-    public Bot(String token, Connection connection) throws SQLException, InterruptedException {
+    public Bot(String token, Connection connection) {
         this.connection = connection;
         initialize(token);
     }
 
-    private void initialize(String token) throws SQLException, InterruptedException {
-        api = JDABuilder.createDefault(token).build().awaitReady();
-        registry = new CommandRegistry(api, connection);
-        utility = new BotUtility(api, connection);
-        utility.updateGuilds();
-        registry.registerCommands();
-        addListener();
-        logger.info("Bot started");
+    private void initialize(String token) {
+        try {
+            api = JDABuilder.createDefault(token).build().awaitReady();
+            registry = new CommandRegistry(api, connection);
+            utility = new BotUtility(api, connection);
+            utility.updateGuilds();
+            registry.registerCommands();
+            addListener();
+            logger.info("Bot started");
+        } catch (InterruptedException | SQLException | InvalidTokenException | IllegalArgumentException e) {
+            logger.error(e);
+            System.exit(1);
+        }
+
     }
 
     private void addListener() {

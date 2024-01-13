@@ -21,10 +21,8 @@ public class SlashCommandListener extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event){
-
-        event.deferReply().setEphemeral(true).queue();
-
         if(event.isFromGuild()){
+            event.deferReply().setEphemeral(true).queue();
             Commands command = Commands.getCommand(event.getName());
             switch (Objects.requireNonNull(command)){
                 case ADD:

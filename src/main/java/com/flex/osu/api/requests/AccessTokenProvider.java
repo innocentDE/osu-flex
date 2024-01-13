@@ -50,6 +50,10 @@ public class AccessTokenProvider {
             logger.info("Access token found in database.");
             if (!credentialStorage.isAccessTokenExpired())
                 logger.info("Access token is still valid.");
+            else {
+                logger.info("Access token is expired.");
+                requestAndStoreAccessToken();
+            }
         } else {
             logger.info("Access token not found in database.");
             requestAndStoreAccessToken();

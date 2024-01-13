@@ -10,10 +10,12 @@ import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.channels.Channel;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -44,14 +46,9 @@ public class Flex {
             for(User user : users){
                 Optional<Score> recentScore = requests.getScore(user.id);
 
-                if(recentScore.isEmpty()) {
-                    logger.debug(String.format("User %s has no recent score", user.username));
-                    continue;
-                }
-                if(userStorage.isBestId(user.id, recentScore.get().id)){
-                    continue;
-                }
-
+                if(recentScore.isEmpty()) continue;
+                if(userStorage.isBestId(user.id, recentScore.get().id)) continue;
+                
                 userStorage.insertBestId(user.id, recentScore.get().id);
                 OsuData data = requests.isInBest(user, recentScore.get());
                 sendEmbedIfInBest(data);
@@ -64,10 +61,7 @@ public class Flex {
 
     private void sendEmbedIfInBest(OsuData data) throws SQLException {
         if(data.isBest()){
-            ScoreEmbed embed = new ScoreEmbed(data);
             Map<String, String> servers = userServersStorage.getServersByUser(data.getUser().id);
-
-
             if(servers.isEmpty()){
                 // todo: remove user from table
                 logger.debug("No servers found for user " + data.getUser().username);
@@ -75,48 +69,99 @@ public class Flex {
             }
 
             for(Map.Entry<String, String> server : servers.entrySet()){
-
+                ScoreEmbed embed = new ScoreEmbed(data);
                 int threshold = userServersStorage.getThreshold(data.getUser().id, Long.parseLong(server.getKey()));
 
-                if(data.getScoreIndex() > threshold){
-                    logger.debug(String.format("Score didn't reach threshold %d for user %s", threshold, data.getUser().username));
+                if (!meetsConditions(data, server, threshold))
                     continue;
-                }
-                if(hasBotPermission(server.getKey(), server.getValue())) {
-                    logger.debug(String.format("Bot has no permission to send messages to channel %s in server %s",
-                            server.getValue(), server.getKey()));
-                    continue;
-                }
 
-                api.getGuildById((server.getKey()))
-                        .getTextChannelById(server.getValue())
-                        .sendMessageEmbeds(embed.getEmbed())
-                        .queue();
-                logger.debug("Sent embed for user " + data.getUser().username + " to server " + server.getKey());
+                sendEmbed(data, server, embed);
             }
         }
     }
 
-    // todo: parameter Guild instead of 2, split logic from method (check permission in another method)
-    private boolean hasBotPermission(String serverId, String channelId){
+    private boolean meetsConditions(OsuData data, Map.Entry<String, String> server, int threshold) {
 
-            if(!api.getGuildById(serverId)
-                    .getSelfMember()
-                    .hasPermission(api.getGuildById(serverId)
-                            .getTextChannelById(channelId),
-                            Permission.MESSAGE_SEND)) {
-                logger.debug("Bot has no permission to send messages to channel " + channelId + " in server " + serverId);
+        logger.debug("Checking conditions for user " + data.getUser().username + " in server " + server.getKey());
 
-                api.getGuildById(serverId)
-                        .retrieveOwner()
-                        .complete()
-                        .getUser()
-                        .openPrivateChannel()
-                        .queue((channel) -> channel.sendMessage(
-                                "Bot has no permission to send messages to channel " + serverId + " in server " + serverId).queue()
-                        );
-                return true;
+        Guild guild = api.getGuildById(server.getKey());
+        TextChannel textChannel;
+
+        if(guild == null){
+            logger.debug("Server " + server.getKey() +
+                    " not found. Maybe the bot is not in the server anymore or the server was deleted");
+            return false;
         }
-        return false;
+
+        textChannel = guild.getTextChannelById(server.getValue());
+
+        if(textChannel == null){
+            logger.debug("Channel " + server.getValue() +
+                    " not found. Maybe the channel was deleted?");
+            sendNoPermissionNoticeToOwner(server.getKey(), server.getValue());
+            return false;
+        }
+
+        String guildName = guild.getName();
+        String channelName = textChannel.getName();
+
+        if(data.getScoreIndex() > threshold){
+            logger.debug(String.format("Score didn't reach threshold %d for user %s in server %s",
+                    threshold, data.getUser().username, guildName));
+            return false;
+        }
+
+        if(!hasBotPermission(server)) {
+            logger.debug(String.format("Bot has no permission to send messages to channel %s in server %s",
+                    channelName, guildName));
+            return false;
+        }
+
+        return true;
+    }
+
+    private void sendEmbed(OsuData data, Map.Entry<String, String> server, ScoreEmbed embed) {
+        api.getGuildById((server.getKey()))
+                .getTextChannelById(server.getValue())
+                .sendMessageEmbeds(embed.getEmbed())
+                .queue();
+        logger.debug("Sent embed for user " + data.getUser().username + " to server " + server.getKey());
+    }
+
+
+    private boolean hasBotPermission(Map.Entry<String, String> server){
+        // todo: check if bot has permission to send messages to channel
+        return true;
+    }
+
+    private void sendNoPermissionNoticeToOwner(String serverId, String channelId){
+        Guild guild = api.getGuildById(serverId);
+        TextChannel textChannel = guild.getTextChannelById(channelId);
+
+        if(guild == null){
+            logger.debug("Server " + serverId +
+                    " not found. Maybe the bot is not in the server anymore or the server was deleted");
+        }
+
+        if(textChannel == null){
+            logger.debug("Channel " + channelId +
+                    " not found. Maybe the channel was deleted?");
+
+            api.getGuildById(serverId)
+                    .retrieveOwner().
+                    complete()
+                    .getUser()
+                    .openPrivateChannel()
+                    .queue(channel -> channel.sendMessage("The channel " + channelId + " in server " + guild.getName() +
+                            " does not exist. Please set a new channel with /set").queue());
+        }
+
+        api.getGuildById(serverId)
+                .retrieveOwner().
+                complete()
+                .getUser()
+                .openPrivateChannel()
+                .queue(channel -> channel.sendMessage("I don't have permission to send messages to channel " +
+                        textChannel.getName() + " in server " + guild.getName()).queue());
     }
 }

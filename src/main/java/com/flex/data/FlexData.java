@@ -1,13 +1,10 @@
 package com.flex.data;
 
-import lombok.Getter;
-
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-@Getter
 public abstract class FlexData {
 
     public static final String CLIENT_VERSION = "osu!flex - v.1.1.0";
@@ -17,8 +14,8 @@ public abstract class FlexData {
     public static final int MAX_USERNAME_LENGTH = 20;
     public static final int MAX_TOP_PLAYS = 100;
     public static final List<Long> DEVELOPER_DISCORD_IDS = Arrays.asList(283613120981762049L, 340774639821127680L);
-    public static final Long OSU_FLEX_DISCORD_ID = 1191348878054801478L;
     public static final String ERROR_MESSAGE = "Something went wrong";
+    public static final int ACCESS_TOKEN_EXPIRY = 24 * 60 * 60 * 1000;
 
     public static Color getRandomOsuPaletteColor() {
         int[][] osuColorPalette = {
