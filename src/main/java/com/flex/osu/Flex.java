@@ -10,6 +10,7 @@ import com.flex.osu.entities.OsuData;
 import com.flex.osu.entities.score.Score;
 import com.flex.osu.entities.user.User;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.apache.logging.log4j.LogManager;
@@ -88,6 +89,7 @@ public class Flex {
         TextChannel textChannel;
 
         if(guild == null){
+            // todo: remove server (and relations) from table
             logger.debug("Server " + server.getKey() +
                     " not found. Maybe the bot is not in the server anymore or the server was deleted");
             return false;
@@ -96,9 +98,7 @@ public class Flex {
         textChannel = guild.getTextChannelById(server.getValue());
 
         if(textChannel == null){
-            logger.debug("Channel " + server.getValue() +
-                    " not found. Maybe the channel was deleted?");
-            sendNoPermissionNoticeToOwner(server.getKey(), server.getValue());
+            sendChannelNotFoundNoticeToOwner(guild, server.getValue());
             return false;
         }
 
@@ -111,9 +111,10 @@ public class Flex {
             return false;
         }
 
-        if(!hasBotPermission(server)) {
+        if(!hasBotPermission(guild, textChannel)) {
             logger.debug(String.format("Bot has no permission to send messages to channel %s in server %s",
                     channelName, guildName));
+            sendNoPermissionNoticeToOwner(guild, textChannel);
             return false;
         }
 
@@ -129,39 +130,27 @@ public class Flex {
     }
 
 
-    private boolean hasBotPermission(Map.Entry<String, String> server){
-        // todo: check if bot has permission to send messages to channel
-        return true;
+    private boolean hasBotPermission(Guild guild, TextChannel channel){
+        return guild.getSelfMember().hasPermission(channel, Permission.MESSAGE_SEND);
     }
 
-    private void sendNoPermissionNoticeToOwner(String serverId, String channelId){
-        Guild guild = api.getGuildById(serverId);
-        TextChannel textChannel = guild.getTextChannelById(channelId);
+    private void sendNoPermissionNoticeToOwner(Guild guild, TextChannel channel){
+        String message = String.format("I don't have permission to send messages to channel %s in server %s",
+                channel.getName(), guild.getName());
 
-        if(guild == null){
-            logger.debug("Server " + serverId +
-                    " not found. Maybe the bot is not in the server anymore or the server was deleted");
-        }
+        guild.retrieveOwner().queue(owner -> owner.getUser().openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendMessage(message).queue();
+            logger.debug("Sent no permission notice to owner of server " + guild.getName());
+        }));
+    }
 
-        if(textChannel == null){
-            logger.debug("Channel " + channelId +
-                    " not found. Maybe the channel was deleted?");
+    private void sendChannelNotFoundNoticeToOwner(Guild guild, String channelId){
+        String message = String.format("Channel %s not found in server %s",
+                channelId, guild.getName());
 
-            api.getGuildById(serverId)
-                    .retrieveOwner().
-                    complete()
-                    .getUser()
-                    .openPrivateChannel()
-                    .queue(channel -> channel.sendMessage("The channel " + channelId + " in server " + guild.getName() +
-                            " does not exist. Please set a new channel with /set").queue());
-        }
-
-        api.getGuildById(serverId)
-                .retrieveOwner().
-                complete()
-                .getUser()
-                .openPrivateChannel()
-                .queue(channel -> channel.sendMessage("I don't have permission to send messages to channel " +
-                        textChannel.getName() + " in server " + guild.getName()).queue());
+        guild.retrieveOwner().queue(owner -> owner.getUser().openPrivateChannel().queue(privateChannel -> {
+            privateChannel.sendMessage(message).queue();
+            logger.debug("Sent channel not found notice to owner of server " + guild.getName());
+        }));
     }
 }
