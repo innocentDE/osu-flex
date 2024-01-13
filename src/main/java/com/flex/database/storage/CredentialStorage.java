@@ -1,6 +1,6 @@
 package com.flex.database.storage;
 
-import org.apache.logging.log4j.LogManager;
+import com.flex.data.FlexData;
 
 import java.sql.*;
 
@@ -8,7 +8,6 @@ public class CredentialStorage extends MySqlStorage {
 
     public CredentialStorage(Connection connection) {
         super.connection = connection;
-        logger = LogManager.getLogger(CredentialStorage.class);
     }
 
     public void insertAccessToken(String accessToken) throws SQLException {
@@ -36,23 +35,9 @@ public class CredentialStorage extends MySqlStorage {
         ResultSet resultSet = statement.executeQuery();
         if (resultSet.next()) {
             Timestamp createdAt = resultSet.getTimestamp("createdAt");
-            return System.currentTimeMillis() - createdAt.getTime() > 24 * 60 * 60 * 1000;
+            return System.currentTimeMillis() - createdAt.getTime() > FlexData.ACCESS_TOKEN_EXPIRY;
         } else {
             return true;
-        }
-    }
-
-    public int getExpiry() throws SQLException {
-        String query = "SELECT MAX(createdAt) AS createdAt FROM credentials";
-        PreparedStatement statement = connection.prepareStatement(query);
-        ResultSet resultSet = statement.executeQuery();
-        if (resultSet.next()) {
-            Timestamp createdAt = resultSet.getTimestamp("createdAt");
-            long differenceInMinutes = (System.currentTimeMillis() - createdAt.getTime()) / (1000 * 60);
-            long remainingMinutes = 24 * 60 - differenceInMinutes;
-            return remainingMinutes > 0 ? (int) remainingMinutes : 0;
-        } else {
-            throw new RuntimeException("No access token found");
         }
     }
 

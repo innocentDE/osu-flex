@@ -48,6 +48,7 @@ public class UserStorage extends MySqlStorage {
         return resultSet.next();
     }
 
+    // todo: needed for the future
     public void removeUser(int id) throws SQLException {
         String query = "DELETE FROM users WHERE id = ?";
         PreparedStatement statement = connection.prepareStatement(query);

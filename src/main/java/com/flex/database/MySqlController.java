@@ -23,6 +23,7 @@ public class MySqlController {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e){
             logger.debug(e.getMessage());
+            System.exit(1);
         }
     }
 
@@ -32,6 +33,7 @@ public class MySqlController {
             logger.debug("Successfully connected to the database");
         } catch (SQLException e) {
             logger.debug(e.getMessage());
+            System.exit(1);
         }
     }
 }

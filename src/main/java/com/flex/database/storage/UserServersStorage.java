@@ -25,6 +25,7 @@ public class UserServersStorage extends MySqlStorage {
         statement.executeUpdate();
     }
 
+    // todo: needed for the future
     public boolean isUserOnMultipleServers(int userId) throws SQLException {
         String query = "SELECT COUNT(*) FROM user_servers WHERE userId = ?";
         PreparedStatement statement = connection.prepareStatement(query);

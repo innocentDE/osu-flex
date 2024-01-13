@@ -19,23 +19,8 @@ public class JoinEmbed {
                 .setTitle("osu!flex")
                 .setDescription("osu!flex is a discord bot that allows you to track players' top plays and send them to your discord server")
                 .addField(
-                        "/add [username]",
-                        "adds a user to osu!flex",
-                        true
-                )
-                .addField(
-                        "/remove [username]",
-                        "removes a user from osu!flex",
-                        true
-                )
-                .addField(
-                        "/set [channel]",
-                        "sets the channel where osu!flex sends the top plays",
-                        true
-                )
-                .addField(
-                        "/list",
-                        "lists all tracked users on this server",
+                        "/help",
+                        "Opens a list with all commands for the bot",
                         true
                 )
                 .addField("Links",

@@ -90,7 +90,7 @@ public class SetThresholdCommand extends SlashCommand{
     private int getUserId(String user) throws SQLException, IllegalArgumentException {
         Optional<Integer> userId = userStorage.getUserId(user);
         if (userId.isEmpty()) {
-            throw new IllegalArgumentException("User is not registered");
+            throw new IllegalArgumentException(String.format("User %s is not registered on osu!flex", user));
         }
         return userId.get();
     }

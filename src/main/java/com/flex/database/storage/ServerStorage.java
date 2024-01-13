@@ -15,15 +15,6 @@ public class ServerStorage extends MySqlStorage {
 
     public ServerStorage(Connection connection){
         super.connection = connection;
-        logger = LogManager.getLogger(UserStorage.class);
-    }
-
-    public boolean isServerRegistered(long serverId) throws SQLException {
-        String query = "SELECT * FROM servers WHERE serverId = ?";
-        PreparedStatement statement = connection.prepareStatement(query);
-        statement.setLong(1, serverId);
-        ResultSet resultSet = statement.executeQuery();
-        return resultSet.next();
     }
 
     public void registerServer(long serverId, long channelId) throws SQLException {
