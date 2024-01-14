@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -125,6 +126,10 @@ public class Flex {
         api.getGuildById((server.getKey()))
                 .getTextChannelById(server.getValue())
                 .sendMessageEmbeds(embed.getEmbed())
+                .addActionRow(
+                        Button.link(data.getScore().beatmap.url, "Map"),
+                        Button.primary("rendering", "Rendering")
+                )
                 .queue();
         logger.debug("Sent embed for user " + data.getUser().username + " to server " + server.getKey());
     }
